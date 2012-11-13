@@ -93,10 +93,6 @@ necessary Formulae at one point:
 * [libstemmer](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/libstemmer.rb)
 * [isync](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/isync.rb)
 
-## Packages
-
-I am using MacPorts, and as such have 
-[Homebrew](http://mxcl.github.com/homebrew/).  
 
 ## IMAP Idle
 
