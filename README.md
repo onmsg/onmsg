@@ -100,8 +100,10 @@ Idle is the feature that notifies us when something changes on the
 IMAP server.  We use it to get timely updates when there are changes.
 
 * You'll need imaplib2.  I did `sudo easy_install pip` and then `pip
-  install imaplib2`.  If you're fetishistic about purity, install it
-  in a [virtualenv](http://www.virtualenv.org) environment.
+  install imaplib2`.  If you have [Growl](http://growl.info)
+  installed, also `pip install gntp`.  If you're fetishistic about
+  purity, install these in a [virtualenv](http://www.virtualenv.org)
+  environment.
   
 * In the [scripts/ subdirectory](file://scripts) of this repository
   you'll find

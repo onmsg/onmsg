@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# This code is largely based on http://www.cocoaforge.com/viewtopic.php?f=45&t=20355
+# This code is largely based on
+# http://www.cocoaforge.com/viewtopic.php?f=45&t=20355
+# http://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
+# was also very helpful.
 #
 # It will exit with an error occasionally due to dropped IMAP
 # connections, so you should do something to restart it when that
@@ -11,9 +15,48 @@ import time
 import os
 import subprocess
 import email
+import urllib2
+import re
 from threading import *
 
+#
+# Constants you may want to tune for your installation
+#
+MAIL_ICON='http://zachkvet.files.wordpress.com/2011/04/email-icon.png'
+
 IMAP_USERNAME = "dave@boostpro.com"
+
+# It will try your OSX keychain if you leave this as None
+IMAP_PASSWORD = None
+
+# Local mailboxes to scan for new unread messages
+LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
+
+# Dovecot's imap program
+PREAUTH_TUNNEL = '/opt/local/libexec/dovecot/imap'
+
+# How many characters of a message body should we present in notifications
+NOTIFY_MAX_BODY_LENGTH = 100
+
+# sync email every 5 minutes, regardless of IDLE
+SYNC_INTERVAL = 5*60 
+
+# If any sync goes on for more than a minute, kill it
+SYNC_TIMEOUT = 60 
+
+try:
+    import gntp.notifier # Growl notifications for MacOS
+except:
+    class Notifier(object):
+        def notify(self, *args, **kw):
+            pass
+    notifier = Notifier()
+else:
+    notifier = gntp.notifier.GrowlNotifier(
+        applicationName = 'Emacs',
+        notifications = ['NewMessage'],
+        defaultNotifications = ['NewMessage'])
+    notifier.register()
 
 #
 # Grab the password from the keychain to avoid exposing it as plain text
@@ -25,18 +68,31 @@ def osxkeychain(service, account = None, type="internet"):
     lines = p.stderr.readlines()
     return lines[0].split('"')[1]
 
-IMAP_PASSWORD = osxkeychain('imap.gmail.com', IMAP_USERNAME)
+def text_part(msg):
+    maintype = msg.get_content_maintype()
+    if maintype == 'text':
+        return msg
+    elif maintype == 'multipart':
+        for part in msg.get_payload():
+            found = text_part(part)
+            if found:
+                return found
 
-SYNC_INTERVAL = 5*60 # sync email every 5 minutes, regardless of IDLE
+def message_text(msg):
+    text = text_part(msg)
+    return text.get_payload(decode=True).replace('\r','') if text else ''
 
-SYNC_TIMEOUT = 60 # If any sync goes on for more than a minute, kill it
+def sender(msg):
+    return re.sub(r'([^<]+?)(\s+<[^@<>]+@[^@<>]+>)$', r'\1', msg['from'])
 
 # This is the threading object that does all the waiting on 
 # the event
 class Idler(object):
-    def __init__(self, conn):
+    def __init__(self, local, remote, local_known_uids):
         self.thread = None
-        self.M = conn
+        self.local = local
+        self.remote = remote
+        self.local_known_uids = local_known_uids
         self.event = Event()
         self.last_notify = ""
         self.started = False
@@ -74,7 +130,7 @@ class Idler(object):
 
             # Do the actual idle call. This returns immediately, 
             # since it's asynchronous.
-            self.M.idle(timeout=SYNC_INTERVAL, callback=callback)
+            self.remote.idle(timeout=SYNC_INTERVAL, callback=callback)
 
             # This waits until the event is set. The event is 
             # set by the callback, when the server 'answers' 
@@ -105,39 +161,63 @@ class Idler(object):
         thread.join(SYNC_TIMEOUT)
         if thread.is_alive():
             p.kill()
+        else:
+            for mailbox, uids in self.local_known_uids.items():
+                new_unseen = unseen_uids(self.local, mailbox) - uids
+                uids |= new_unseen
+                for uid in sorted(new_unseen):
+
+                    # Don't fetch more than 10K
+                    ok, ((open, rfc822), close) = self.local.uid('fetch', uid, '(BODY.PEEK[]<0.10240>)')
+
+                    # Was the message likely truncated?
+                    if open.split()[-1] == '{10240}':
+                        # if so, drop the last line to aid decoding
+                        rfc822 = rfc822.rsplit('/r/n',1)[0]
+
+                    message = email.message_from_string(rfc822)
+                    
+                    text = message_text(message)
+                    description = text[:NOTIFY_MAX_BODY_LENGTH]
+                    if description != text:
+                        description += '…'
+
+                    notifier.notify(
+                        noteType = 'NewMessage',
+                        title = sender(message) + ': ' + message['subject'],
+                        description = description,
+                        icon = MAIL_ICON,
+                        sticky = False,
+                        priority = 1,
+                        )
+
         subprocess.Popen(['doveadm','-v', 'index','[Gmail]/All Mail'])
         return
-        
-        print "Got an event!" 
-        retcode, messages = self.M.search(None, 'UNSEEN')
-        if len(messages) >= 1 and len(messages[0].split()) >= 1:
-            ret, msginfo = self.M.fetch(messages[0].split()[-1], '(BODY[HEADER.FIELDS (SUBJECT FROM)] BODY[1])')
-            if ret == 'OK':
-                header = msginfo[0][1].split('\r\n')
-                sender = header[0]
-                subject = header[1][9:]
-                body = msginfo[1][1][:100]
-                notify = sender+subject+body
-                if notify != self.last_notify:
-                    self.last_notify = notify
-                    print "New email %s %s %s" % (sender,subject,body)
-                else:
-                    print "Already notified"
  
+def unseen_uids(connection, mailbox):
+    connection.examine(mailbox)
+    ok, messages = connection.uid('search', None,'UNSEEN')
+    return set(int(x) for x in messages[0].split())
+
 idler = None
 last_notify = ""
 try:
+    local = imaplib2.IMAP4_stream(PREAUTH_TUNNEL)
+    local_known_uids = dict(
+        ((mailbox, unseen_uids(local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
+
     # loop forever, timing out faster than IMAP will time you out
     while os.path.exists('/etc/resolv.conf'):
         # Set the following two lines to your creds and server
-        M = imaplib2.IMAP4_SSL("imap.gmail.com")
-        M.login(IMAP_USERNAME, IMAP_PASSWORD)
+        remote = imaplib2.IMAP4_SSL("imap.gmail.com")
+        remote.login(IMAP_USERNAME, 
+                     IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME))
 
         # defaults to inbox
-        M.select('[Gmail]/All Mail')
+        remote.select('[Gmail]/All Mail')
 
         # Start the Idler thread
-        idler = Idler(M)
+        idler = Idler(local, remote, local_known_uids)
         idler.last_notify = last_notify
         if last_notify == "":
             idler.dosync() # Always sync once when starting up
@@ -152,8 +232,8 @@ try:
         last_notify = idler.last_notify
         idler.stop()
         idler.join()
-        M.close()
-        M.logout()
+        remote.close()
+        remote.logout()
         idler = None
 finally:
     # Clean up.
@@ -161,5 +241,5 @@ finally:
         print "Shutting down"
         idler.stop()
         idler.join()
-        M.close()
-        M.logout()
+        remote.close()
+        remote.logout()
