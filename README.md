@@ -108,10 +108,15 @@ IMAP server.  We use it to get timely updates when there are changes.
   in a [virtualenv](http://www.virtualenv.org) environment.
   
 * In the [scripts/ subdirectory](file://scripts) of this repository
-  you'll find `mbsync-idle-trigger`, which monitors Gmail's
-  “[Gmail]/All Mail” folder for changes, and initiates a sync whenever
-  something changes there.  It also syncs when it starts up, and every
-  5 minutes thereafter, just in case.
+  you'll find
+  [`mbsync-idle-trigger`](file://scripts/mbsync-idle-trigger), which
+  monitors Gmail's “[Gmail]/All Mail” folder for changes and initiates
+  a sync whenever something changes there.  It also syncs when it
+  starts up, and every 5 minutes thereafter, just in case.
+
+* The script contains several constants at the beginning that you may
+  want to tweak, and one (my GMail username) that you'll *definitely*
+  want to tweak.
 
 ## MacPorts Users
 
