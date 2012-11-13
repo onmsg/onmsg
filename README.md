@@ -118,15 +118,4 @@ IMAP server.  We use it to get timely updates when there are changes.
   want to tweak, and one (my GMail username) that you'll *definitely*
   want to tweak.
 
-## MacPorts Users
-
-If I was starting over from scratch, I'd probably use
-[MacPorts](http://macports.org) instead of Homebrew to install Dovecot
-and other tools because of its far greater maturity, but I didn't know
-that before I tried Homebrew.  If you're already a MacPorts user, rest
-assured that Homebrew and MacPorts [can
-coexist](https://github.com/mxcl/homebrew/wiki/Homebrew-0.9.3).  I'm
-using them that way now, but I may eventually transition to using
-Homebrew as a better [stow](http://www.gnu.org/software/stow/).
-
 
