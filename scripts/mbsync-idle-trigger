@@ -118,12 +118,12 @@ class ReadOnlyRetryConnection(object):
         self.examine(*args, **kw)
 
     def idle(self, *args, **kw):
-        log('inner_idle', (args, kw))
         
         # idle needs special handling, because its errors don't demand an immediate retry
         self.__prepare()
+        log('idle>', (args, kw))
         self.__connection.idle(*args, **kw)
-        log('inner_idle done')
+        log('idle<')
 
     def __prepare(self):
         if self.__connection is None:
