@@ -195,17 +195,6 @@ class Contexts(object):
             c = self.__entered.pop()
             c.__exit__(type, value, tb)
 
-#import threading
-#threading._Condition.wait.im_func.func_defaults = (99999999,)
-#threading.Thread.join.im_func.func_defaults = (99999999,)
-
-import signal
-
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
 class ScopedLock(object):
     def __init__(self, mutex):
         self.mutex = mutex
@@ -243,7 +232,7 @@ class Synchronizer(Contexts):
             with ScopedLock(self.cv):
                 while not self.need_sync and not self.idle_error:
                     # Without a timeout, KeyboardInterrupt won't stop this script
-                    self.cv.wait(999)  
+                    self.cv.wait(999)
                 if self.idle_error:
                     raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
                 self.need_sync = False
