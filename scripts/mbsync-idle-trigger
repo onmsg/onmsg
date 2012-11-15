@@ -218,7 +218,7 @@ class Synchronizer(Contexts):
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
         self.idle_done = Event()
-        self.pool = multiprocessing.Pool()
+        self.pool = multiprocessing.Pool(1)
 
     def check_error(self):
         x = self.exc_info
