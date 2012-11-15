@@ -182,18 +182,18 @@ def dns_up():
 
 class Contexts(object):
     def __init__(self, *args):
-        self.children = args
-        self.entered = []
+        self.__children = args
+        self.__entered = []
 
     def __enter__(self):
-        for c in self.children:
+        for c in self.__children:
             c.__enter__()
-            self.entered.append(c)
+            self.__entered.append(c)
         return self
 
     def __exit__(self, type, value, tb):
-        while self.entered:
-            c = self.entered.pop()
+        while self.__entered:
+            c = self.__entered.pop()
             c.__exit__(type, value, tb)
 
 class Synchronizer(Contexts):
