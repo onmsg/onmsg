@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Synchronize a local dovecot to Gmail using mbsync, and watch Gmail's
+# "All Mail" folder using IDLE, resynchronizing when it changes, or
+# every 5 minutes, whichever comes first.
+
 # This code was originally based on
 # http://www.cocoaforge.com/viewtopic.php?f=45&t=20355 but has since
 # been almost completely rewritten.
