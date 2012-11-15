@@ -164,13 +164,18 @@ class ReadOnlyRetryConnection(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, ty, value, tb):
         c = self.__connection
-        if c:
+        if None and c:
             self.__connection = None
             try:
+                if c.state == 'SELECTED':
+                    log('closing %s' % type(c))
+                    c.close()
+                log('logging out of %s' % type(c))
                 c.logout()
-            except c.error:
+            except c.error, e:
+                log('error logging out:', e)
                 pass
 
 def unseen_uids(connection, mailbox_name):
@@ -197,11 +202,33 @@ class Contexts(object):
             c = self.__entered.pop()
             c.__exit__(type, value, tb)
 
+#import threading
+#threading._Condition.wait.im_func.func_defaults = (99999999,)
+#threading.Thread.join.im_func.func_defaults = (99999999,)
+
+import signal
+
+def preexec_function():
+    # Ignore the SIGINT signal by setting the handler to the standard
+    # signal handler SIG_IGN.
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+class ScopedLock(object):
+    def __init__(self, mutex):
+        self.mutex = mutex
+    def __enter__(self):
+        self.mutex.acquire()
+        return self
+    def __exit__(self, type, value, tb):
+        self.mutex.release()
+
 class Synchronizer(Contexts):
-    exc_info = None
+    idle_thread = None
+    idle_error = None
     need_sync = False
     
     def __init__(self):
+        self.cv = Condition()
         self.local = ReadOnlyRetryConnection(imaplib2.IMAP4_stream, PREAUTH_TUNNEL)
         self.remote = ReadOnlyRetryConnection(
                     imaplib2.IMAP4_SSL, "imap.gmail.com",
@@ -210,45 +237,45 @@ class Synchronizer(Contexts):
                     mailbox='[Gmail]/All Mail'
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
-        self.idle_done = Event()
-        self.pool = multiprocessing.Pool(1)
+        self.idle_thread = Thread(target=self.idle)
+        self.idle_thread.daemon = True
 
-    def check_error(self):
-        x = self.exc_info
-        self.exc_info = None
-        if x:
-            raise x[0], x[1], x[2]
+    def run(self):
+        self.idle_thread.start()
 
-    def idle_callback(self, args):
-        log('idle_callback', self, args)
-        result, data, error = args
-        try:
-            # According to the imaplib2 docs:
-            #
-            #        "abort" exceptions imply the connection should be
-            #        reset, and the command re-tried.
-            # 
-            # Therefore, we treat those as if idling had succeeded
-            if error and not isinstance(error[0], self.remote.abort):
-                raise error[0], error[1]
-            self.need_sync = True
-        except:
-            self.exc_info = sys.exc_info()
-        self.idle_done.set()
+        self.local_known_uids = dict(
+            ((mailbox, unseen_uids(self.local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
+        while dns_up():
 
-    def synchronize(self):
-        if not self.need_sync:
-            log("no sync needed")
-        while self.need_sync and dns_up():
-            log("sync needed")
-            self.need_sync = False
-            self.pool.apply_async(
-                subprocess.check_call, (['mbsync', '-a'],), {}, self.notify )
-            log("sync launched")
+            with ScopedLock(self.cv):
+                while not self.need_sync and not self.idle_error:
+                    self.cv.wait(999)
+                if self.idle_error:
+                    raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
+                self.need_sync = False
+            
+            subprocess.check_call(['mbsync', '-a'])
+            self.notify_user()
+            log('user notified')
 
+    def idle(self):
+        idle_timeout = 0 # initial sync is immediate
+        while not self.idle_error:
+            try:
+                self.remote.idle(idle_timeout)
+            except:
+                self.idle_error = sys.exc_info()
 
-    def notify(self, _):
+            with ScopedLock(self.cv):
+                self.need_sync = True
+                self.cv.notify_all()
+
+            idle_timeout = SYNC_INTERVAL
+        
+    def notify_user(self):
+        log('notifying user')
         for mailbox, uids in self.local_known_uids.items():
+            log('checking', mailbox)
             new_unseen = unseen_uids(self.local, mailbox) - uids
             uids |= new_unseen
             for uid in sorted(new_unseen):
@@ -268,6 +295,8 @@ class Synchronizer(Contexts):
                 if description != text:
                     description += '…'
 
+                log('growling', sender, message['subject'], description)
+
                 notifier.notify(
                     noteType = 'NewMessage',
                     title = sender(message) + ': ' + message['subject'],
@@ -276,23 +305,7 @@ class Synchronizer(Contexts):
                     sticky = False,
                     priority = 1,
                     )
-            
-    def run(self):
-        idle_timeout = 0 # initial sync is immediate
-        self.local_known_uids = dict(
-            ((mailbox, unseen_uids(self.local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
-
-        while dns_up():
-            log('idling')
-            self.idle_done.clear()
-            self.remote.idle(timeout=idle_timeout, callback=self.idle_callback)
-            log('waiting')
-            self.idle_done.wait()
-            log('check_error')
-            self.check_error()
-            self.synchronize()
-
-            idle_timeout = SYNC_INTERVAL
 
 with Synchronizer() as s:
     s.run()
+
