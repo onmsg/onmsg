@@ -105,8 +105,10 @@ class ReadOnlyRetryConnection(object):
         self.__password = self.__kw.pop('password', None)
         self.__mailbox = self.__kw.pop('mailbox', None)
         self.__connection = None
-        #self.__kw['debug'] = 9
-        #self.__kw['debug_buf_lvl'] = 9
+
+        if '--verbose' in sys.argv:
+            self.__kw['debug'] = 9
+            self.__kw['debug_buf_lvl'] = 9
 
     def examine(self, *args, **kw):
         self.__command('examine', *args, **kw)
