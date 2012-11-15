@@ -52,7 +52,7 @@ try:
 except:
     class Notifier(object):
         def notify(self, *args, **kw):
-            pass
+            print 'Note:', args, kw
     notifier = Notifier()
 else:
     notifier = gntp.notifier.GrowlNotifier(
