@@ -19,7 +19,6 @@ import email
 import urllib2
 import re
 import sys
-import multiprocessing
 from threading import *
 
 #
