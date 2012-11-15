@@ -59,7 +59,7 @@ except:
     notifier = Notifier()
 else:
     notifier = gntp.notifier.GrowlNotifier(
-        applicationName = 'Emacs',
+        applicationName = 'mbsync',
         notifications = ['NewMessage'],
         defaultNotifications = ['NewMessage'])
     notifier.register()
