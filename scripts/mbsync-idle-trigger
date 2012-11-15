@@ -103,7 +103,7 @@ class ReadOnlyRetryConnection(object):
         self.__kw = dict(kw)
         self.__username = self.__kw.pop('username', None)
         self.__password = self.__kw.pop('password', None)
-        self.__mailbox = None
+        self.__mailbox = self.__kw.pop('mailbox', None)
         self.__connection = None
         #self.__kw['debug'] = 9
         #self.__kw['debug_buf_lvl'] = 9
@@ -119,6 +119,7 @@ class ReadOnlyRetryConnection(object):
         log('inner_idle', (args, kw))
         
         # idle needs special handling, because its errors don't demand an immediate retry
+        self.__prepare()
         self.__connection.idle(*args, **kw)
         log('inner_idle done')
 
@@ -128,7 +129,13 @@ class ReadOnlyRetryConnection(object):
         if self.__connection.state == 'NONAUTH':
             self.__connection.login(self.__username, self.__password)
         if self.__mailbox and self.__connection.state != 'SELECTED':
-            self.examine(self.__mailbox)
+            mailbox = self.__mailbox
+            # temporarily unset the mailbox to avoid an infinite recursion
+            self.__mailbox = None
+            try:
+                self.examine(mailbox)
+            finally:
+                self.__mailbox = mailbox
 
     def __getattr__(self, attr):
         self.__prepare()
@@ -206,7 +213,8 @@ class Synchronizer(Contexts):
         self.remote = ReadOnlyRetryConnection(
                     imaplib2.IMAP4_SSL, "imap.gmail.com",
                     username=IMAP_USERNAME,
-                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME)
+                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME),
+                    mailbox='[Gmail]/All Mail'
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
         self.idle_done = Event()
@@ -282,8 +290,6 @@ class Synchronizer(Contexts):
             ((mailbox, unseen_uids(self.local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
 
         while dns_up():
-            log('examine')
-            self.remote.examine('[Gmail]/All Mail')
             log('idling')
             self.idle_done.clear()
             self.remote.idle(timeout=idle_timeout, callback=self.idle_callback)
