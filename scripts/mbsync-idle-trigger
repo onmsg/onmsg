@@ -159,7 +159,7 @@ class ReadOnlyRetryConnection(object):
                     raise
                 error_count += 1 
                 # reset the connection
-                self.__exit__()
+                self.__exit__(None,None,None)
 
     def __enter__(self):
         return self
