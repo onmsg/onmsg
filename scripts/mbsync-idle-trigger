@@ -238,7 +238,8 @@ class Synchronizer(Contexts):
 
             with ScopedLock(self.cv):
                 while not self.need_sync and not self.idle_error:
-                    self.cv.wait(999)
+                    # Without a timeout, KeyboardInterrupt won't stop this script
+                    self.cv.wait(999)  
                 if self.idle_error:
                     raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
                 self.need_sync = False
@@ -249,14 +250,18 @@ class Synchronizer(Contexts):
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
-        while not self.idle_error:
+        error = None
+        while not error:
             try:
                 self.remote.idle(idle_timeout)
             except:
-                self.idle_error = sys.exc_info()
+                error = sys.exc_info()
 
             with ScopedLock(self.cv):
-                self.need_sync = True
+                if error:
+                    self.idle_error = error
+                else:
+                    self.need_sync = True
                 self.cv.notify_all()
 
             idle_timeout = SYNC_INTERVAL
