@@ -222,10 +222,13 @@ class Synchronizer(Contexts):
         self.idle_thread.daemon = True
 
     def run(self):
-        self.idle_thread.start()
+        if dns_up():
+            self.idle_thread.start()
 
-        self.local_known_uids = dict(
-            ((mailbox, unseen_uids(self.local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
+            self.local_known_uids = dict(
+                ((mailbox, unseen_uids(self.local, mailbox)) 
+                 for mailbox in LOCAL_NOTIFY_INCOMING))
+
         while dns_up():
 
             with ScopedLock(self.cv):
@@ -236,11 +239,11 @@ class Synchronizer(Contexts):
                     raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
                 self.need_sync = False
             
-            subprocess.check_call(['mbsync', '-a'])
+            subprocess.check_call(['/opt/local/bin/mbsync', '-a'])
             self.notify_user()
 
             log('user notified; updating FTS index')
-            subprocess.Popen(['doveadm', 'index', '*'])
+            subprocess.Popen(['/opt/local/bin/doveadm', 'index', '*'])
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
