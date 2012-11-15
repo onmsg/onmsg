@@ -239,7 +239,9 @@ class Synchronizer(Contexts):
             
             subprocess.check_call(['mbsync', '-a'])
             self.notify_user()
-            log('user notified')
+
+            log('user notified; updating FTS index')
+            subprocess.Popen(['doveadm', 'index', '*'])
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
