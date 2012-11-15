@@ -16,13 +16,12 @@
 # happens.
 
 import imaplib2
-import time
 import os
 import subprocess
 import email
-import urllib2
 import re
 import sys
+import traceback
 from threading import *
 
 #
@@ -295,6 +294,21 @@ class Synchronizer(Contexts):
                     priority = 1,
                     )
 
-with Synchronizer() as s:
-    s.run()
+if __name__ == '__main__':
+    while dns_up():
+        try:
+            with Synchronizer() as s:
+                s.run()
+        except KeyboardInterrupt, e:
+            print 'Keyboard interrupt; shutting down'
+            exit(1)
+        except Exception, e:
+            if '--verbose' in sys.argv:
+                log(traceback.format_exc())
+            else:
+                print >>sys.stderr, e
+                print 'retrying...'
+
+    print >>sys.stderr, 'no network; exiting mbsync idle'
+            
 
