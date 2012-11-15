@@ -58,7 +58,7 @@ except:
     notifier = Notifier()
 else:
     notifier = gntp.notifier.GrowlNotifier(
-        applicationName = 'mbsync',
+        applicationName = 'mbsync-idle',
         notifications = ['NewMessage'],
         defaultNotifications = ['NewMessage'])
     notifier.register()
