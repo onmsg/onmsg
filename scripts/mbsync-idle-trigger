@@ -196,15 +196,6 @@ class Contexts(object):
             c = self.entered.pop()
             c.__exit__(type, value, tb)
 
-class ScopedLock(object):
-    def __init__(self, mutex):
-        self.mutex = mutex
-    def __enter__(self):
-        self.mutex.acquire()
-        return self
-    def __exit__(self, type, value, tb):
-        self.mutex.release()
-
 class Synchronizer(Contexts):
     exc_info = None
     need_sync = False
