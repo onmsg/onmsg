@@ -17,6 +17,8 @@ import subprocess
 import email
 import urllib2
 import re
+import sys
+import multiprocessing
 from threading import *
 
 #
@@ -58,6 +60,15 @@ else:
         defaultNotifications = ['NewMessage'])
     notifier.register()
 
+def log(*args):
+    if not '--verbose' in sys.argv:
+        return
+    print >>sys.stderr, '###',
+    for a in args:
+        print >>sys.stderr, a,
+    print >>sys.stderr
+    sys.stderr.flush()
+
 #
 # Grab the password from the keychain to avoid exposing it as plain text
 #
@@ -85,161 +96,204 @@ def message_text(msg):
 def sender(msg):
     return re.sub(r'([^<]+?)(\s+<[^@<>]+@[^@<>]+>)$', r'\1', msg['from'])
 
-# This is the threading object that does all the waiting on 
-# the event
-class Idler(object):
-    def __init__(self, local, remote, local_known_uids):
-        self.thread = None
-        self.local = local
-        self.remote = remote
-        self.local_known_uids = local_known_uids
-        self.event = Event()
-        self.last_notify = ""
-        self.started = False
- 
-    def start(self):
-        self.thread = Thread(target=self.idle)
-        self.thread.start()
- 
-    def stop(self):
-        # This is a neat trick to make thread end. Took me a 
-        # while to figure that one out!
-        self.event.set()
- 
-    def join(self):
-        if self.thread:
-            self.thread.join()
-            self.thread = None
- 
-    def idle(self):
-        # Do this as long as there's a DNS address
+class ReadOnlyRetryConnection(object):
+    def __init__(self, class_, *args, **kw):
+        self.__class = class_
+        self.__args = args
+        self.__kw = dict(kw)
+        self.__username = self.__kw.pop('username', None)
+        self.__password = self.__kw.pop('password', None)
+        self.__mailbox = None
+        self.__connection = None
+        #self.__kw['debug'] = 9
+        #self.__kw['debug_buf_lvl'] = 9
+
+    def examine(self, *args, **kw):
+        self.__command('examine', *args, **kw)
+        self.__mailbox = args[0]
+
+    def select(self, *args, **kw):
+        self.examine(*args, **kw)
+
+    def idle(self, *args, **kw):
+        log('inner_idle', (args, kw))
+        
+        # idle needs special handling, because its errors don't demand an immediate retry
+        self.__connection.idle(*args, **kw)
+        log('inner_idle done')
+
+    def __prepare(self):
+        if self.__connection is None:
+            self.__connection = self.__class(*self.__args, **self.__kw)
+        if self.__connection.state == 'NONAUTH':
+            self.__connection.login(self.__username, self.__password)
+        if self.__mailbox and self.__connection.state != 'SELECTED':
+            self.examine(self.__mailbox)
+
+    def __getattr__(self, attr):
+        self.__prepare()
+        a = getattr(self.__connection, attr)
+        if not isinstance(a, type(self.__getattr__)):
+            return a
+        return lambda *args, **kw: self.__command(attr, *args, **kw)
+
+    def __command(self, cmd, *args, **kw):
+        self.__prepare()
+        error_count = 0
+        
         while True:
-            # This is part of the trick to make the loop stop 
-            # when the stop() command is given
-            if self.event.isSet():
-                return
+            try:
+                self.__prepare()
+                return getattr(self.__connection, cmd)(*args, **kw)
+            except self.__connection.abort:
+                if error_count > 0:
+                    raise
+                error_count += 1 
+                # reset the connection
+                self.__exit__()
 
-            self.needsync = False
+    def __enter__(self):
+        return self
 
-            # A callback method that gets called when a new 
-            # email arrives. Very basic, but that's good.
-            def callback(args):
-                if not self.event.isSet():
-                    self.needsync = True
-                    self.event.set()
+    def __exit__(self, type, value, tb):
+        c = self.__connection
+        if c:
+            self.__connection = None
+            try:
+                c.logout()
+            except c.error:
+                pass
 
-            # Do the actual idle call. This returns immediately, 
-            # since it's asynchronous.
-            self.remote.idle(timeout=SYNC_INTERVAL, callback=callback)
-
-            # This waits until the event is set. The event is 
-            # set by the callback, when the server 'answers' 
-            # the idle call and the callback function gets 
-            # called.
-            self.event.wait()
-
-            # Because the function sets the needsync variable,
-            # this helps escape the loop without doing 
-            # anything if the stop() is called. Kinda neat 
-            # solution.
-            if self.needsync:
-                self.event.clear()
-                self.dosync()
- 
-    # The method that gets called when a new email arrives. 
-    def dosync(self):
-        # Do this as long as there's a DNS address
-        if not os.path.exists('/etc/resolv.conf'):
-            print '## No network; skipping sync'
-            self.event.set() # Mark ourselves as needing to exit
-            return
-
-        print '## Triggering sync'
-        p = subprocess.Popen(['mbsync', '-a'])
-        thread = Thread(target = p.wait())
-        thread.start()
-        thread.join(SYNC_TIMEOUT)
-        if thread.is_alive():
-            p.kill()
-        else:
-            for mailbox, uids in self.local_known_uids.items():
-                new_unseen = unseen_uids(self.local, mailbox) - uids
-                uids |= new_unseen
-                for uid in sorted(new_unseen):
-
-                    # Don't fetch more than 10K
-                    ok, ((open, rfc822), close) = self.local.uid('fetch', uid, '(BODY.PEEK[]<0.10240>)')
-
-                    # Was the message likely truncated?
-                    if open.split()[-1] == '{10240}':
-                        # if so, drop the last line to aid decoding
-                        rfc822 = rfc822.rsplit('/r/n',1)[0]
-
-                    message = email.message_from_string(rfc822)
-                    
-                    text = message_text(message)
-                    description = text[:NOTIFY_MAX_BODY_LENGTH]
-                    if description != text:
-                        description += '…'
-
-                    notifier.notify(
-                        noteType = 'NewMessage',
-                        title = sender(message) + ': ' + message['subject'],
-                        description = description,
-                        icon = MAIL_ICON,
-                        sticky = False,
-                        priority = 1,
-                        )
-
-        subprocess.Popen(['doveadm','-v', 'index','[Gmail]/All Mail'])
-        return
- 
-def unseen_uids(connection, mailbox):
-    connection.examine(mailbox)
-    ok, messages = connection.uid('search', None,'UNSEEN')
+def unseen_uids(connection, mailbox_name):
+    connection.examine(mailbox_name)
+    ok, messages = connection.uid('search', None, 'UNSEEN')
     return set(int(x) for x in messages[0].split())
 
-idler = None
-last_notify = ""
-try:
-    local = imaplib2.IMAP4_stream(PREAUTH_TUNNEL)
-    local_known_uids = dict(
-        ((mailbox, unseen_uids(local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
+def dns_up():
+    return os.name == 'nt' or os.path.exists('/etc/resolv.conf')
 
-    # loop forever, timing out faster than IMAP will time you out
-    while os.path.exists('/etc/resolv.conf'):
-        # Set the following two lines to your creds and server
-        remote = imaplib2.IMAP4_SSL("imap.gmail.com")
-        remote.login(IMAP_USERNAME, 
-                     IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME))
+class Contexts(object):
+    def __init__(self, *args):
+        self.children = args
+        self.entered = []
 
-        # defaults to inbox
-        remote.select('[Gmail]/All Mail')
+    def __enter__(self):
+        for c in self.children:
+            c.__enter__()
+            self.entered.append(c)
+        return self
 
-        # Start the Idler thread
-        idler = Idler(local, remote, local_known_uids)
-        idler.last_notify = last_notify
-        if last_notify == "":
-            idler.dosync() # Always sync once when starting up
-        print "Connected. Waiting on IDLE."
-        idler.start()
+    def __exit__(self, type, value, tb):
+        while self.entered:
+            c = self.entered.pop()
+            c.__exit__(type, value, tb)
 
-        # sleep 20 minutes. Idle can time out in 30 minutes, so we'll
-        # try to reconnect before then
-        time.sleep(22*60)
-        
-        # a hack to make sure you only get notified once per email
-        last_notify = idler.last_notify
-        idler.stop()
-        idler.join()
-        remote.close()
-        remote.logout()
-        idler = None
-finally:
-    # Clean up.
-    if idler is not None:
-        print "Shutting down"
-        idler.stop()
-        idler.join()
-        remote.close()
-        remote.logout()
+class ScopedLock(object):
+    def __init__(self, mutex):
+        self.mutex = mutex
+    def __enter__(self):
+        self.mutex.acquire()
+        return self
+    def __exit__(self, type, value, tb):
+        self.mutex.release()
+
+class Synchronizer(Contexts):
+    exc_info = None
+    need_sync = False
+    
+    def __init__(self):
+        self.local = ReadOnlyRetryConnection(imaplib2.IMAP4_stream, PREAUTH_TUNNEL)
+        self.remote = ReadOnlyRetryConnection(
+                    imaplib2.IMAP4_SSL, "imap.gmail.com",
+                    username=IMAP_USERNAME,
+                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME)
+                    )
+        super(Synchronizer,self).__init__(self.local, self.remote)
+        self.idle_done = Event()
+        self.pool = multiprocessing.Pool()
+
+    def check_error(self):
+        x = self.exc_info
+        self.exc_info = None
+        if x:
+            raise x[0], x[1], x[2]
+
+    def idle_callback(self, args):
+        log('idle_callback', self, args)
+        result, data, error = args
+        try:
+            # According to the imaplib2 docs:
+            #
+            #        "abort" exceptions imply the connection should be
+            #        reset, and the command re-tried.
+            # 
+            # Therefore, we treat those as if idling had succeeded
+            if error and not isinstance(error[0], self.remote.abort):
+                raise error[0], error[1]
+            self.need_sync = True
+        except:
+            self.exc_info = sys.exc_info()
+        self.idle_done.set()
+
+    def synchronize(self):
+        if not self.need_sync:
+            log("no sync needed")
+        while self.need_sync and dns_up():
+            log("sync needed")
+            self.need_sync = False
+            self.pool.apply_async(
+                subprocess.check_call, (['mbsync', '-a'],), {}, self.notify )
+            log("sync launched")
+
+
+    def notify(self, _):
+        for mailbox, uids in self.local_known_uids.items():
+            new_unseen = unseen_uids(self.local, mailbox) - uids
+            uids |= new_unseen
+            for uid in sorted(new_unseen):
+
+                # Don't fetch more than 10K
+                ok, ((open, rfc822), close) = self.local.uid('fetch', uid, '(BODY.PEEK[]<0.10240>)')
+
+                # Was the message likely truncated?
+                if open.split()[-1] == '{10240}':
+                    # if so, drop the last line to aid decoding
+                    rfc822 = rfc822.rsplit('/r/n',1)[0]
+
+                message = email.message_from_string(rfc822)
+
+                text = message_text(message)
+                description = text[:NOTIFY_MAX_BODY_LENGTH]
+                if description != text:
+                    description += '…'
+
+                notifier.notify(
+                    noteType = 'NewMessage',
+                    title = sender(message) + ': ' + message['subject'],
+                    description = description,
+                    icon = MAIL_ICON,
+                    sticky = False,
+                    priority = 1,
+                    )
+            
+    def run(self):
+        idle_timeout = 0 # initial sync is immediate
+        self.local_known_uids = dict(
+            ((mailbox, unseen_uids(self.local, mailbox)) for mailbox in LOCAL_NOTIFY_INCOMING))
+
+        while dns_up():
+            log('examine')
+            self.remote.examine('[Gmail]/All Mail')
+            log('idling')
+            self.idle_done.clear()
+            self.remote.idle(timeout=idle_timeout, callback=self.idle_callback)
+            log('waiting')
+            self.idle_done.wait()
+            log('check_error')
+            self.check_error()
+            self.synchronize()
+
+            idle_timeout = SYNC_INTERVAL
+
+with Synchronizer() as s:
+    s.run()
