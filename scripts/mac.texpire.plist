@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+        <dict>
+                <key>UserName</key>             <string>_news</string>
+                <key>Label</key>                <string>mac.texpire</string>
+                <!-- Run once every 24 hours -->
+                <key>StartInterval</key>        <integer>86400</integer>
+                
+                <!-- This will prevent the spool from being unmounted
+                     until after the process has stopped -->
+                <key>WorkingDirectory</key>
+                <string>/opt/local/var/spool/news/leaf.node</string>
+
+                <!-- If we fail to run—maybe the spool isn't mounted,
+                     or maybe fetchnews has grabbed the lock—try again
+                     in 13 minutes.  A prime number lessens the chance
+                     that we'll have repeated collisions with
+                     fetchnews.
+                -->
+                <key>ThrottleInterval</key>     <integer>780</integer>
+
+                <!-- Consider it a failure if the spool directory isn't mounted -->
+                <key>ProgramArguments</key>
+                <array>
+                  <string>/bin/sh</string>
+                  <string>-c</string>
+<string>
+[ -e /opt/local/var/spool/news/leaf.node ] &amp;&amp; /opt/local/sbin/texpire
+</string>
+                </array>
+
+                <!-- <key>Nice</key> -->
+                <!-- <integer>15</integer> -->
+                <!-- <key>LowPriorityIO</key> -->
+                <!-- <true/> -->
+
+                <!-- <key>Debug</key>                       <true/> -->
+                <!-- <key>StandardOutPath</key>             <string>/tmp/texpire.log</string> -->
+                <!-- <key>StandardErrorPath</key>           <string>/tmp/texpire.log</string> -->
+        </dict>
+</plist>
+
+<!-- vim: set nowrap tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab :-->
+<!-- vim: set textwidth=0 filetype=xml foldmethod=marker nospell :-->
