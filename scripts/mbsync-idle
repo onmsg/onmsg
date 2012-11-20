@@ -172,7 +172,7 @@ class ReadOnlyRetryConnection(object):
 
 def unseen_uids(connection, mailbox_name):
     connection.examine(mailbox_name)
-    ok, messages = connection.uid('search', None, 'NOT DELETED')
+    ok, messages = connection.uid('search', None, 'NOT', 'DELETED')
     return set(int(x) for x in messages[0].split())
 
 def dns_up():
