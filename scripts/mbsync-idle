@@ -52,6 +52,7 @@ SYNC_TIMEOUT = 60
 try:
     import gntp.notifier # Growl notifications for MacOS
 except:
+    # A notifier that prints on stdout
     class Notifier(object):
         def notify(self, *args, **kw):
             print 'Note:', args, kw
