@@ -46,7 +46,7 @@ NOTIFY_MAX_BODY_LENGTH = 100
 # sync email every 5 minutes, regardless of IDLE
 SYNC_INTERVAL = 5*60 
 
-# If any sync goes on for more than a minute, kill it
+# If any sync goes on without generating output for more than a minute, kill it
 SYNC_TIMEOUT = 60 
 
 try:
@@ -92,6 +92,36 @@ def text_part(msg):
             found = text_part(part)
             if found:
                 return found
+
+def check_call_with_timeout(timeout, *popenargs, **kwargs):
+    """Like subprocess.check_call, but will kill the subprocess if it
+    generates no output on stdout during any timeout window.
+    """
+    p = subprocess.Popen(*popenargs, stdout=subprocess.PIPE, **kwargs)
+
+    def killp():
+        print (
+            'Command %s has not generated output in %d seconds; killing!'
+            % (' '.join(popenargs), timeout))
+        sys.stdout.flush()
+        p.kill()
+    
+    # repeatedly try to read a character after launching a timer that
+    # will kill the process in timeout seconds.
+    while p.poll() == None:
+        t = Timer(timeout, killp)
+        t.start()
+        sys.stdout.write(p.stdout.read(1))
+        t.cancel()
+
+    # Error reporting code lifted from subprocess.check_call
+    retcode = p.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        raise subprocess.CalledProcessError(retcode, cmd)
+    return 0
 
 def message_text(msg):
     text = text_part(msg)
@@ -240,7 +270,7 @@ class Synchronizer(Contexts):
                     raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
                 self.need_sync = False
             
-            subprocess.check_call(['/opt/local/bin/mbsync', '-a'])
+            check_call_with_timeout(SYNC_TIMEOUT, ['/opt/local/bin/mbsync', '-a'])
             self.notify_user()
 
             log('user notified; updating FTS index')
