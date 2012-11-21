@@ -1,35 +1,37 @@
-# Local Dovecot Starter Kit
+# Responsive, always-available messaging for hackers
 
 This repository contains instructions and configuration for setting up
-a kick-ass local [Dovecot](http://wiki2.dovecot.org) IMAP server that
-synchronizes with your remote IMAP server.
+a kick-ass local [Dovecot](http://wiki2.dovecot.org) IMAP server, that
+synchronizes with your remote IMAP server, and a local
+[leafnode](http://leafnode.sourceforge.net) server for your NNTP
+newsgroups.
 
 These instructions use GMail as a remote IMAP server and assume you're
 on a Mac, but they can easily be adapted to other platforms and
-configurations.
+configurations.  They'll be especially useful if you're a Gnus user.
 
 ## Strategy
 
 * Build and install Dovecot with powerful search/indexing capability enabled
 * Use Dovecot's super-efficient
   [mdbox](http://wiki2.dovecot.org/MailboxFormat/dbox) mail storage format
-* Use [mbsync](http://isync.sourceforge.net/mbsync.html) to keep your
-  local and remote mailboxes in sync.
+* Use [mbsync](http://isync.sourceforge.net/mbsync.html) to
+  *efficiently* keep your local and remote mailboxes in sync.
 * Run a daemon that uses IMAP IDLE to be notified of changes to the
   remote mailbox requiring a sync.
 
 ## Packages
 
-On some platforms (e.g. [MacPorts](http://macports.org) and
-[Homebrew](http://mxcl.github.com/homebrew/), as of this writing, the
-official build recipes and packages are not enough to create the
-system described here.  Details below.
+The official build recipies and packages for
+([MacPorts](http://macports.org) and
+[Homebrew](http://mxcl.github.com/homebrew/), are not enough to create
+the system described here.  Details below.
 
 ### MacPorts
 
 If you're using [MacPorts](http://macports.org), you'll want to set up
 a local portfile repository.  The
-[instructions](](http://guide.macports.org/chunked/development.local-repositories.html)
+[instructions](http://guide.macports.org/chunked/development.local-repositories.html)
 suggest that you put the repository below your home directory, but
 that will [lead](https://trac.macports.org/ticket/36950) either to
 great frustration with permissions, or to you unnecessarily relaxing
@@ -57,10 +59,8 @@ ln -s /opt/local/var/macports/sources/rsync.macports.org/release/tarballs/ports 
 ```
 
 Then you'll want to copy
-[`mail/dovecot2`](https://github.com/dabrahams/Portfiles/tree/master/mail/dovecot2) (),
-[`mail/isync`](https://github.com/dabrahams/Portfiles/tree/master/mail/isync),
-and
-[`textproc/libstemmer`](https://github.com/dabrahams/Portfiles/tree/master/textproc/libstemmer)
+[`mail/dovecot2`](https://github.com/dabrahams/Portfiles/tree/master/mail/dovecot2),
+and [`mail/isync`](https://github.com/dabrahams/Portfiles/tree/master/mail/isync),
 from
 [my personal Portfile repository](http://github.com/dabrahams/Portfiles)
 to the corresponding locations under `/Library/Portfiles/`, and then,
@@ -81,8 +81,7 @@ For the rest of these instructions, you should read `$PREFIX` as `/opt/local`.
 
 Note: MacPorts tickets for the updated Portfiles are here:
 [dovecot](https://trac.macports.org/ticket/36954),
-[isync](https://trac.macports.org/ticket/36959),
-[libstemmer](https://trac.macports.org/ticket/36952)
+[isync](https://trac.macports.org/ticket/36959).
 
 ## Homebrew
 
