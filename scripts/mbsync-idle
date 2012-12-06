@@ -106,13 +106,23 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
         sys.stdout.flush()
         p.kill()
     
-    # repeatedly try to read a character after launching a timer that
-    # will kill the process in timeout seconds.
-    while p.poll() == None:
-        t = Timer(timeout, killp)
-        t.start()
-        sys.stdout.write(p.stdout.read(1))
-        t.cancel()
+    t = None
+    try:
+        # repeatedly try to read a character after launching a timer that
+        # will kill the process in timeout seconds.
+        while p.poll() == None:
+            t = Timer(timeout, killp)
+            t.start()
+            c = p.stdout.read(1)
+            t.cancel()
+            sys.stdout.write(c)
+            t = None
+    except:
+        # The timer is apparently associated with a non-daemon thread,
+        # which will keep the process alive if we don't cancel it.
+        if t: 
+            t.cancel()
+        raise
 
     # Error reporting code lifted from subprocess.check_call
     retcode = p.poll()
