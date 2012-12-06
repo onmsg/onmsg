@@ -93,16 +93,16 @@ def text_part(msg):
             if found:
                 return found
 
-def check_call_with_timeout(timeout, *popenargs, **kwargs):
+def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     """Like subprocess.check_call, but will kill the subprocess if it
     generates no output on stdout during any timeout window.
     """
-    p = subprocess.Popen(*popenargs, stdout=subprocess.PIPE, **kwargs)
+    p = subprocess.Popen(args, *popenargs, stdout=subprocess.PIPE, **kwargs)
 
     def killp():
         print (
             'Command %s has not generated output in %d seconds; killing!'
-            % (' '.join(popenargs), timeout))
+            % (args, timeout))
         sys.stdout.flush()
         p.kill()
     
@@ -117,10 +117,7 @@ def check_call_with_timeout(timeout, *popenargs, **kwargs):
     # Error reporting code lifted from subprocess.check_call
     retcode = p.poll()
     if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        raise subprocess.CalledProcessError(retcode, cmd)
+        raise subprocess.CalledProcessError(retcode, args)
     return 0
 
 def message_text(msg):
