@@ -274,7 +274,7 @@ class Synchronizer(Contexts):
             self.notify_user()
 
             log('user notified; updating FTS index')
-            subprocess.Popen(['/opt/local/bin/doveadm', 'index', '*'])
+            subprocess.Popen(['/opt/local/bin/doveadm', 'index', '-q', '[Gmail]/All Mail'])
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
