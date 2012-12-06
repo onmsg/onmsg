@@ -156,6 +156,12 @@ class ReadOnlyRetryConnection(object):
         self.__connection.idle(*args, **kw)
         log('idle<')
 
+    def update_search_indices(self):
+        response = self.__connection.search(None, 'BODY', '"THISwontBEfoundIbet"')
+        log('done.')
+        if response[0] != 'OK':
+            log('Search index update failed with', response, always=True)
+
     def __prepare(self):
         if self.__connection is None:
             self.__connection = self.__class(*self.__args, **self.__kw)
@@ -271,7 +277,7 @@ class Synchronizer(Contexts):
             self.notify_user()
 
             log('user notified; updating FTS index')
-            subprocess.Popen(['/opt/local/bin/doveadm', 'index', '-q', '[Gmail]/All Mail'])
+            self.local.update_search_indices()
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
