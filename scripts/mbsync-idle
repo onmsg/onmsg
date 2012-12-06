@@ -338,7 +338,7 @@ if __name__ == '__main__':
                 s.run()
         except KeyboardInterrupt, e:
             log('Keyboard interrupt; shutting down', always=True)
-            exit(1)
+            sys.exit(1)
         except Exception, e:
             if '--verbose' in sys.argv:
                 log(traceback.format_exc())
