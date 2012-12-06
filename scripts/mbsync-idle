@@ -64,10 +64,10 @@ else:
         defaultNotifications = ['NewMessage'])
     notifier.register()
 
-def log(*args):
-    if not '--verbose' in sys.argv:
+def log(*args, **kw):
+    if not (kw.get('always') or '--verbose' in sys.argv):
         return
-    print >>sys.stderr, '###',
+    print >>sys.stderr, 'mbsync-idle:',
     for a in args:
         print >>sys.stderr, a,
     print >>sys.stderr
@@ -100,9 +100,9 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     p = subprocess.Popen(args, *popenargs, stdout=subprocess.PIPE, **kwargs)
 
     def killp():
-        print (
+        log(
             'Command %s has not generated output in %d seconds; killing!'
-            % (args, timeout))
+            % (args, timeout), always=True)
         sys.stdout.flush()
         p.kill()
     
@@ -331,15 +331,15 @@ if __name__ == '__main__':
             with Synchronizer() as s:
                 s.run()
         except KeyboardInterrupt, e:
-            print 'Keyboard interrupt; shutting down'
+            log('Keyboard interrupt; shutting down', always=True)
             exit(1)
         except Exception, e:
             if '--verbose' in sys.argv:
                 log(traceback.format_exc())
             else:
-                print >>sys.stderr, e
-                print 'retrying...'
+                log(e, always=True)
+            log('retrying...', always=True)
 
-    print >>sys.stderr, 'no network; exiting mbsync idle'
+    log('no network; exiting mbsync idle', always=True)
             
 
