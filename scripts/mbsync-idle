@@ -37,6 +37,8 @@ IMAP_PASSWORD = None
 # Local mailboxes to scan for new unread messages
 LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
 
+LOCAL_FTS_MAILBOXES = ['INBOX', '[Gmail]/All Mail']
+
 # Dovecot's imap program
 PREAUTH_TUNNEL = '/opt/local/libexec/dovecot/imap'
 
@@ -166,11 +168,15 @@ class ReadOnlyRetryConnection(object):
         self.__connection.idle(*args, **kw)
         log('idle<')
 
-    def update_search_indices(self):
-        response = self.__connection.search(None, 'BODY', '"THISwontBEfoundIbet"')
-        log('done.')
-        if response[0] != 'OK':
-            log('Search index update failed with', response, always=True)
+    def update_search_indices(self, mailboxes):
+        for m in mailboxes:
+            log('    ', m, '...')
+            self.examine(m)
+            response = self.__connection.search(None, 'BODY', '"THISwontBEfoundIbet"')
+            log('    ...done.')
+            if response[0] != 'OK':
+                log('Search index update failed with', response, always=True)
+        log('...done.')
 
     def __prepare(self):
         if self.__connection is None:
@@ -287,7 +293,7 @@ class Synchronizer(Contexts):
             self.notify_user()
 
             log('user notified; updating FTS index')
-            self.local.update_search_indices()
+            self.local.update_search_indices(LOCAL_FTS_MAILBOXES)
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
