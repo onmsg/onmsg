@@ -45,6 +45,9 @@ PREAUTH_TUNNEL = '/opt/local/libexec/dovecot/imap'
 # How many characters of a message body should we present in notifications
 NOTIFY_MAX_BODY_LENGTH = 100
 
+# For how many messages at once shall we post growl notifications before we consolidate?
+NOTIFY_MAX_MSGS = 3
+
 # sync email every 5 minutes, regardless of IDLE
 SYNC_INTERVAL = 5*60 
 
@@ -289,7 +292,10 @@ class Synchronizer(Contexts):
                     raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
                 self.need_sync = False
             
+            log('Invoking mbsync...', always=True)
             check_call_with_timeout(SYNC_TIMEOUT, ['/opt/local/bin/mbsync', '-a'])
+            log('...mbsync Done', always=True)
+
             self.notify_user()
 
             log('user notified; updating FTS index')
@@ -315,6 +321,7 @@ class Synchronizer(Contexts):
         
     def notify_user(self):
         log('notifying user')
+        notifications = []
         for mailbox, uids in self.local_known_uids.items():
             log('checking', mailbox)
             new_unseen = unseen_uids(self.local, mailbox) - uids
@@ -335,17 +342,25 @@ class Synchronizer(Contexts):
                 description = text[:NOTIFY_MAX_BODY_LENGTH]
                 if description != text:
                     description += '…'
+                notifications.append(
+                    (sender(message) + ': ' + message['subject'],
+                     description))
 
-                log('growling', sender, message['subject'], description)
+        log('notifying %d message(s)' % len(notifications))
+        if len(notifications) > NOTIFY_MAX_MSGS:
+            notifications = [(
+                    '%d new messages' % len(notifications), 
+                    '\n'.join(title for title,description in notifications))]
 
-                notifier.notify(
-                    noteType = 'NewMessage',
-                    title = sender(message) + ': ' + message['subject'],
-                    description = description,
-                    icon = MAIL_ICON,
-                    sticky = False,
-                    priority = 1,
-                    )
+        for title,description in notifications:
+            notifier.notify(
+                noteType = 'NewMessage',
+                title = title,
+                description = description,
+                icon = MAIL_ICON,
+                sticky = False,
+                priority = 1,
+                )
 
 if __name__ == '__main__':
     while dns_up():
