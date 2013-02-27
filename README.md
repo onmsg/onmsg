@@ -23,8 +23,8 @@ configurations.  They'll be especially useful if you're a Gnus user.
 ## Packages
 
 The official build recipies and packages for
-([MacPorts](http://macports.org) and
-[Homebrew](http://mxcl.github.com/homebrew/), are not enough to create
+[MacPorts](http://macports.org) and
+[Homebrew](http://mxcl.github.com/homebrew/) are not enough to create
 the system described here.  Details below.
 
 ### MacPorts
@@ -49,7 +49,7 @@ I set mine up this way:
 
 ```sh
 sudo mkdir -p /Library/Portfiles/localhost
-chown -R "${USER}:everyone" /Library/Portfiles
+sudo chown -R "${USER}:everyone" /Library/Portfiles
 ```
 For my convenience, I also added a symlink as follows (totally optional):
 
