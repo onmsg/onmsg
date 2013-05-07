@@ -37,7 +37,7 @@ IMAP_PASSWORD = None
 # Local mailboxes to scan for new unread messages
 LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
 
-LOCAL_FTS_MAILBOXES = ['INBOX', '[Gmail]/All Mail']
+LOCAL_FTS_MAILBOXES = ['INBOX', '[Gmail]/All Mail', 'committee']
 
 # Dovecot's imap program
 PREAUTH_TUNNEL = '/opt/local/libexec/dovecot/imap'
