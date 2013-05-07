@@ -92,6 +92,10 @@ necessary Formulae at one point:
 * [libstemmer](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/libstemmer.rb)
 * [isync](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/isync.rb)
 
+## Certificates
+
+https://wiki.archlinux.org/index.php/Isync describes how to set up
+some certs for your .mbsync file
 
 ## IMAP Idle
 
