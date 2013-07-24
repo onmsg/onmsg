@@ -59,12 +59,11 @@ ln -s /opt/local/var/macports/sources/rsync.macports.org/release/tarballs/ports 
 ```
 
 Then you'll want to copy
-[`mail/dovecot2`](https://github.com/dabrahams/Portfiles/tree/master/mail/dovecot2),
-and [`mail/isync`](https://github.com/dabrahams/Portfiles/tree/master/mail/isync),
+[`mail/dovecot2`](https://github.com/dabrahams/Portfiles/tree/master/mail/dovecot2)
 from
 [my personal Portfile repository](http://github.com/dabrahams/Portfiles)
-to the corresponding locations under `/Library/Portfiles/`, and then,
-in that directory, execute
+into your local one (on my system, it went in `/Library/Portfiles/localhost/mail/dovecot2`), and then,
+in your local repository (on my system, `/Library/Portfiles/localhost`)
 
 ```sh
 portindex
@@ -74,19 +73,19 @@ And finally (anywhere),
 
 ```sh
 sudo port install dovecot2 +lucene +libstemmer
-sudo port install isync-devel
+sudo port install isync
 ```
 
 For the rest of these instructions, you should read `$PREFIX` as `/opt/local`.
 
-Note: MacPorts tickets for the updated Portfiles are here:
-[dovecot](https://trac.macports.org/ticket/36954),
-[isync](https://trac.macports.org/ticket/36959).
+Note: the MacPorts ticket for the updated dovecot Portfile is
+[here](https://trac.macports.org/ticket/36954).
 
 ## Homebrew
 
 I am not currently using Homebrew for this, but I did create the
-necessary Formulae at one point:
+necessary Formulae at one point.  These are probably quite outdated at
+the moment:
 
 * [dovecot](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/dovecot.rb)
 * [libstemmer](https://github.com/dabrahams/homebrew/blob/master/Library/Formula/libstemmer.rb)
@@ -110,7 +109,7 @@ IMAP server.  We use it to get timely updates when there are changes.
   
 * In the [scripts/ subdirectory](file://scripts) of this repository
   you'll find
-  [`mbsync-idle-trigger`](file://scripts/mbsync-idle-trigger), which
+  [`mbsync-idle-trigger`](file://scripts/mbsync-idle), which
   monitors Gmail's “[Gmail]/All Mail” folder for changes and initiates
   a sync whenever something changes there.  It also syncs when it
   starts up, and every 5 minutes thereafter, just in case.
