@@ -56,18 +56,17 @@ SYNC_TIMEOUT = 60
 
 try:
     import gntp.notifier # Growl notifications for MacOS
+    notifier = gntp.notifier.GrowlNotifier(
+        applicationName = 'mbsync-idle',
+        notifications = ['NewMessage'],
+        defaultNotifications = ['NewMessage'])
+    notifier.register()
 except:
     # A notifier that prints on stdout
     class Notifier(object):
         def notify(self, *args, **kw):
             print 'Note:', args, kw
     notifier = Notifier()
-else:
-    notifier = gntp.notifier.GrowlNotifier(
-        applicationName = 'mbsync-idle',
-        notifications = ['NewMessage'],
-        defaultNotifications = ['NewMessage'])
-    notifier.register()
 
 def log(*args, **kw):
     if not (kw.get('always') or '--verbose' in sys.argv):
