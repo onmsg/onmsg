@@ -31,7 +31,7 @@
                 <key>QueueDirectories</key>
                 <array>
                         <string>/Users/dave/brew/var/spool/news/leafnode/leaf.node</string>
-                </array>g
+                </array>
         </dict>
 </plist>
 
