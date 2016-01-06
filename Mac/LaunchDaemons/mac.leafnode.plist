@@ -8,12 +8,12 @@
                 <!-- This will prevent the spool from being unmounted
                      until after the process has stopped -->
                 <key>WorkingDirectory</key>
-                <string>/opt/local/var/spool/news/leaf.node</string>
+                <string>/Users/dave/brew/var/spool/news/leafnode/leaf.node</string>
 
 	        <key>UserName</key>                     <string>_news</string>
                 <key>ProgramArguments</key>
                 <array>
-                        <string>/opt/local/sbin/leafnode</string>
+                        <string>/Users/dave/brew/sbin/leafnode</string>
                 </array>
                 <key>Sockets</key>
                 <dict>
@@ -30,8 +30,8 @@
                 <!-- Make sure the news spool is mounted before starting -->
                 <key>QueueDirectories</key>
                 <array>
-                        <string>/usr/local/var/spool/news/leaf.node</string>
-                </array>
+                        <string>/Users/dave/brew/var/spool/news/leafnode/leaf.node</string>
+                </array>g
         </dict>
 </plist>
 

@@ -10,7 +10,7 @@
                 <!-- This will prevent the spool from being unmounted
                      until after the process has stopped -->
                 <key>WorkingDirectory</key>
-                <string>/opt/local/var/spool/news/leaf.node</string>
+                <string>/Users/dave/brew/var/spool/news/leafnode/leaf.node</string>
 
                 <!-- If we fail to run—maybe the spool isn't mounted,
                      or maybe fetchnews has grabbed the lock—try again
@@ -26,7 +26,7 @@
                   <string>/bin/sh</string>
                   <string>-c</string>
 <string>
-[ -e /opt/local/var/spool/news/leaf.node ] &amp;&amp; /opt/local/sbin/texpire
+[ -e /Users/dave/brew/var/spool/news/leafnode/leaf.node ] &amp;&amp; /Users/dave/brew/sbin/texpire
 </string>
                 </array>
 

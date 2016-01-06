@@ -8,7 +8,7 @@
         <!-- This will prevent the spool from being unmounted
              until after the process has stopped -->
         <key>WorkingDirectory</key>
-        <string>/opt/local/var/spool/news/leaf.node</string>
+        <string>/Users/dave/brew/var/spool/news/leafnode/leaf.node</string>
 
         <!-- This avoids a failure due to lack of network connection.
              Since we'll be triggered by WatchPaths when it comes back
@@ -23,7 +23,7 @@
                 <string>
 set -e
 if [ -e /etc/resolv.conf ]; then
-    /opt/local/sbin/fetchnews
+    /Users/dave/brew/sbin/fetchnews
 fi
                 </string>
 	</array>

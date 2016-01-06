@@ -10,7 +10,7 @@
           <string>-c</string>
 <string>
 set -e
-/usr/bin/hdiutil attach -nobrowse -notremovable -noautofsck -owners on -mountpoint /opt/local/var/spool/news /opt/local/var/spool/news.sparseimage
+/usr/bin/hdiutil attach -nobrowse -notremovable -noautofsck -owners on -mountpoint /Users/dave/brew/var/spool/news /Users/dave/brew/var/spool/news.sparseimage
 for x in leafnode fetchnews texpire ; do
   launchctl load /Library/LaunchDaemons/mac.$x.plist
 done

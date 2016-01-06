@@ -40,7 +40,7 @@ LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
 LOCAL_FTS_MAILBOXES = ['INBOX', '[Gmail]/All Mail', 'committee']
 
 # Dovecot's imap program
-PREAUTH_TUNNEL = '/opt/local/libexec/dovecot/imap'
+PREAUTH_TUNNEL = '/Users/dave/brew/libexec/dovecot/imap'
 
 # How many characters of a message body should we present in notifications
 NOTIFY_MAX_BODY_LENGTH = 100
@@ -292,7 +292,7 @@ class Synchronizer(Contexts):
                 self.need_sync = False
             
             log('Invoking mbsync...', always=True)
-            check_call_with_timeout(SYNC_TIMEOUT, ['/opt/local/bin/mbsync', '-a'])
+            check_call_with_timeout(SYNC_TIMEOUT, ['/Users/dave/brew/bin/mbsync', '-a'])
             log('...mbsync Done', always=True)
 
             self.notify_user()
