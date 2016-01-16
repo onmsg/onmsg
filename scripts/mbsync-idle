@@ -84,6 +84,9 @@ def osxkeychain(service, account = None, type="internet"):
     acct = account and [ '-a', account ] or []
     args = ['/usr/bin/security', 'find-'+type+'-password', '-gs', service] + acct
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+    retcode = p.wait()
+    if retcode:
+        raise subprocess.CalledProcessError(retcode, args)
     lines = p.stderr.readlines()
     return lines[0].split('"')[1]
 
