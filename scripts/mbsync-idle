@@ -177,7 +177,9 @@ class ReadOnlyRetryConnection(object):
     def update_search_indices(self, mailboxes):
         for m in mailboxes:
             log('    ', m, '...')
-            self.examine(m)
+            response = self.examine(m)
+            if response[0] != 'OK': 
+                continue
             response = self.__connection.search(None, 'BODY', '"THISwontBEfoundIbet"')
             log('    ...done.')
             if response[0] != 'OK':
