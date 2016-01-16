@@ -272,7 +272,7 @@ class Synchronizer(Contexts):
         self.remote = ReadOnlyRetryConnection(
                     imaplib2.IMAP4_SSL, "imap.gmail.com",
                     username=IMAP_USERNAME,
-                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME),
+                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME, type='generic'),
                     mailbox='[Gmail]/All Mail'
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
