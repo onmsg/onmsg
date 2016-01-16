@@ -159,11 +159,12 @@ class ReadOnlyRetryConnection(object):
             self.__kw['debug_buf_lvl'] = 9
 
     def examine(self, *args, **kw):
-        self.__command('examine', *args, **kw)
-        self.__mailbox = args[0]
-
-    def select(self, *args, **kw):
-        self.examine(*args, **kw)
+        response = self.__command('examine', *args, **kw)
+        if response[0] == 'OK':
+            self.__mailbox = args[0]
+        else:
+            log('examine failed with', response, always=True)
+        return response
 
     def idle(self, *args, **kw):
         
