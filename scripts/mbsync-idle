@@ -132,7 +132,7 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
         raise
 
     # Error reporting code lifted from subprocess.check_call
-    retcode = p.poll()
+    retcode = p.wait()
     if retcode:
         raise subprocess.CalledProcessError(retcode, args)
     return 0
