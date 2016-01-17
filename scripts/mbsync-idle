@@ -318,24 +318,32 @@ class Synchronizer(Contexts):
                 ((mailbox, unseen_uids(self.local, mailbox)) 
                  for mailbox in LOCAL_NOTIFY_INCOMING))
 
-        while dns_up():
+        try:
+            while dns_up():
 
+                with ScopedLock(self.cv):
+                    while not self.need_sync and not self.idle_error:
+                        # Without a timeout, KeyboardInterrupt won't stop this script
+                        self.cv.wait(999)
+                    if self.idle_error:
+                        raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
+                    self.need_sync = False
+
+                log('Invoking mbsync...', always=True)
+                check_call_with_timeout(SYNC_TIMEOUT, ['/Users/dave/brew/bin/mbsync', '-a'])
+                log('...mbsync Done', always=True)
+
+                self.notify_user()
+
+                log('user notified; updating FTS index')
+                self.local.update_search_indices(LOCAL_FTS_MAILBOXES)
+        except:
             with ScopedLock(self.cv):
-                while not self.need_sync and not self.idle_error:
-                    # Without a timeout, KeyboardInterrupt won't stop this script
-                    self.cv.wait(999)
-                if self.idle_error:
-                    raise self.idle_error[0], self.idle_error[1], self.idle_error[2]
-                self.need_sync = False
-            
-            log('Invoking mbsync...', always=True)
-            check_call_with_timeout(SYNC_TIMEOUT, ['/Users/dave/brew/bin/mbsync', '-a'])
-            log('...mbsync Done', always=True)
-
-            self.notify_user()
-
-            log('user notified; updating FTS index')
-            self.local.update_search_indices(LOCAL_FTS_MAILBOXES)
+                # This is a hack that lets the process exit when we
+                # are bailing out due to an exception, particularly a
+                # KeyboardInterrupt.
+                self.remote._end_idle()
+            raise
 
     def idle(self):
         idle_timeout = 0 # initial sync is immediate
