@@ -137,7 +137,9 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     wait_and_check(p)
 
 def message_text(msg):
-
+    """Given an email.message.Message, return its body text, if any, or
+    the empty string otherwise.
+    """
     def text_part(msg):
         maintype = msg.get_content_maintype()
         if maintype == 'text':
@@ -152,9 +154,15 @@ def message_text(msg):
     return text.get_payload(decode=True).replace('\r','') if text else ''
 
 def sender(msg):
+    """Returns a human-readable version of the given
+    email.message.Message's sender.
+    """
     return re.sub(r'([^<]+?)(\s+<[^@<>]+@[^@<>]+>)$', r'\1', msg['from'])
 
 class ReadOnlyRetryConnection(object):
+    """A wrapper around an imaplib2.IMAP4 connection that will retries
+    most commands.
+    """
     def __init__(self, class_, *args, **kw):
         self.__class = class_
         self.__args = args
@@ -197,20 +205,32 @@ class ReadOnlyRetryConnection(object):
         log('...done.')
 
     def __prepare(self):
+        """Get the underlying __connection in sync with our supposed state,
+        re-establishing it if necessary.
+        """
+        # Create the connection
         if self.__connection is None:
             self.__connection = self.__class(*self.__args, **self.__kw)
+        # Authorization handshake
         if self.__connection.state == 'NONAUTH':
             self.__connection.login(self.__username, self.__password)
+        # If we're supposed to be in a mailbox, get the connection
+        # back there.
         if self.__mailbox and self.__connection.state != 'SELECTED':
-            mailbox = self.__mailbox
-            # temporarily unset the mailbox to avoid an infinite recursion
+            # Temporarily unset the mailbox to avoid an infinite
+            # recursion.  FIXME: Could this dance be eliminated by
+            # dealing with the __connection directly?
+            saved_mailbox = self.__mailbox
             self.__mailbox = None
             try:
-                self.examine(mailbox)
+                self.examine(saved_mailbox)
             finally:
-                self.__mailbox = mailbox
+                self.__mailbox = saved_mailbox
 
     def __getattr__(self, attr):
+        """Present all methods and properties of our connection as our own,
+        but wrap all the methods in invocations of __command.
+        """
         self.__prepare()
         a = getattr(self.__connection, attr)
         if not isinstance(a, type(self.__getattr__)):
