@@ -101,7 +101,7 @@ def osxkeychain(service, account = None, type="internet"):
     acct = account and [ '-a', account ] or []
     args = ['/usr/bin/security', 'find-'+type+'-password', '-gs', service] + acct
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-    wait_and_check(p)
+    wait_and_check_process(p)
     return p.stderr.readlines()[0].split('"')[1]
 
 def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
@@ -134,7 +134,7 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
         if t: 
             t.cancel()
 
-    wait_and_check(p)
+    wait_and_check_process(p)
 
 def message_text(msg):
     """Given an email.message.Message, return its body text, if any, or
