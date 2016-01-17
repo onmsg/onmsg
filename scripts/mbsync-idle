@@ -37,7 +37,7 @@ IMAP_PASSWORD = None
 # Local mailboxes to scan for new unread messages
 LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
 
-LOCAL_FTS_MAILBOXES = ['INBOX', '[Gmail]/All Mail', 'committee']
+LOCAL_FTS_MAILBOXES = ['INBOX', 'apple/INBOX', '[Gmail]/All Mail', 'apple/Archive', 'apple/Archive_old']
 
 # Dovecot's imap program
 PREAUTH_TUNNEL = '/Users/dave/brew/libexec/dovecot/imap'
