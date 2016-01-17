@@ -54,21 +54,27 @@ SYNC_INTERVAL = 5*60
 # If any sync goes on without generating output for more than a minute, kill it
 SYNC_TIMEOUT = 60 
 
+# TODO: replace this with direct notification manager usage
 try:
-    import gntp.notifier # Growl notifications for MacOS
+    # Try to use GNTP to notifications, if installed
+    import gntp.notifier
     notifier = gntp.notifier.GrowlNotifier(
         applicationName = 'mbsync-idle',
         notifications = ['NewMessage'],
         defaultNotifications = ['NewMessage'])
     notifier.register()
 except:
-    # A notifier that prints on stdout
+    # Otherwise, use a little notifier that prints on stdout
     class Notifier(object):
         def notify(self, *args, **kw):
             print 'Note:', args, kw
     notifier = Notifier()
 
+
 def log(*args, **kw):
+    """Print a log message to stderr if always=True was passed as
+    an argument, or if mbsync-idle was invoked with --verbose.
+    """
     if not (kw.get('always') or '--verbose' in sys.argv):
         return
     print >>sys.stderr, 'mbsync-idle:',
@@ -81,6 +87,9 @@ def log(*args, **kw):
 # Grab the password from the keychain to avoid exposing it as plain text
 #
 def osxkeychain(service, account = None, type="internet"):
+    """Get the given password from the OSX keychain, using the 
+    given account and password type.
+    """
     acct = account and [ '-a', account ] or []
     args = ['/usr/bin/security', 'find-'+type+'-password', '-gs', service] + acct
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
