@@ -90,16 +90,6 @@ def osxkeychain(service, account = None, type="internet"):
     lines = p.stderr.readlines()
     return lines[0].split('"')[1]
 
-def text_part(msg):
-    maintype = msg.get_content_maintype()
-    if maintype == 'text':
-        return msg
-    elif maintype == 'multipart':
-        for part in msg.get_payload():
-            found = text_part(part)
-            if found:
-                return found
-
 def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     """Like subprocess.check_call, but will kill the subprocess if it
     generates no output on stdout during any timeout window.
@@ -138,6 +128,17 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     return 0
 
 def message_text(msg):
+
+    def text_part(msg):
+        maintype = msg.get_content_maintype()
+        if maintype == 'text':
+            return msg
+        elif maintype == 'multipart':
+            for part in msg.get_payload():
+                found = text_part(part)
+                if found:
+                    return found
+
     text = text_part(msg)
     return text.get_payload(decode=True).replace('\r','') if text else ''
 
