@@ -307,7 +307,7 @@ class Synchronizer(Contexts):
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
         self.idle_thread = Thread(target=self.idle)
-        self.idle_thread.daemon = True
+        self.idle_thread.setDaemon(True)
 
     def run(self):
         if dns_up():
