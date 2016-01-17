@@ -255,7 +255,9 @@ class ReadOnlyRetryConnection(object):
         return self
 
     def __exit__(self, ty, value, tb):
-        self.__connection = None
+        if self.__connection is not None:
+            self.__connection.logout()
+            self.__connection = None
 
 def unseen_uids(connection, mailbox_name):
     connection.examine(mailbox_name)
