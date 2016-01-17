@@ -83,6 +83,14 @@ def log(*args, **kw):
     print >>sys.stderr
     sys.stderr.flush()
 
+def wait_and_check_process(p):
+    """Given a subprocess.Popen object, wait for it to finish and raise
+    an exception if it exited with an error
+    """
+    retcode = p.wait()
+    # Error reporting code lifted from subprocess.check_call
+    if retcode:
+        raise subprocess.CalledProcessError(retcode, args)
 #
 # Grab the password from the keychain to avoid exposing it as plain text
 #
@@ -93,11 +101,8 @@ def osxkeychain(service, account = None, type="internet"):
     acct = account and [ '-a', account ] or []
     args = ['/usr/bin/security', 'find-'+type+'-password', '-gs', service] + acct
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-    retcode = p.wait()
-    if retcode:
-        raise subprocess.CalledProcessError(retcode, args)
-    lines = p.stderr.readlines()
-    return lines[0].split('"')[1]
+    wait_and_check(p)
+    return p.stderr.readlines()[0].split('"')[1]
 
 def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
     """Like subprocess.check_call, but will kill the subprocess if it
@@ -121,20 +126,15 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
             t.start()
             c = p.stdout.read(1)
             t.cancel()
-            sys.stdout.write(c)
             t = None
-    except:
+            sys.stdout.write(c)
+    finally:
         # The timer is apparently associated with a non-daemon thread,
         # which will keep the process alive if we don't cancel it.
         if t: 
             t.cancel()
-        raise
 
-    # Error reporting code lifted from subprocess.check_call
-    retcode = p.wait()
-    if retcode:
-        raise subprocess.CalledProcessError(retcode, args)
-    return 0
+    wait_and_check(p)
 
 def message_text(msg):
 
