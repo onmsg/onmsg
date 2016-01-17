@@ -128,6 +128,9 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
             t.cancel()
             t = None
             sys.stdout.write(c)
+    except KeyboardInterrupt:
+        p.terminate()
+        raise
     finally:
         # The timer is apparently associated with a non-daemon thread,
         # which will keep the process alive if we don't cancel it.
