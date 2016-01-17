@@ -217,15 +217,11 @@ class ReadOnlyRetryConnection(object):
         # If we're supposed to be in a mailbox, get the connection
         # back there.
         if self.__mailbox and self.__connection.state != 'SELECTED':
-            # Temporarily unset the mailbox to avoid an infinite
-            # recursion.  FIXME: Could this dance be eliminated by
-            # dealing with the __connection directly?
+            # Unset the mailbox to avoid an infinite recursion.
             saved_mailbox = self.__mailbox
             self.__mailbox = None
-            try:
-                self.examine(saved_mailbox)
-            finally:
-                self.__mailbox = saved_mailbox
+            self.examine(saved_mailbox)
+            assert(self.__mailbox == saved_mailbox) # sanity check
 
     def __getattr__(self, attr):
         """Present all methods and properties of our connection as our own,
