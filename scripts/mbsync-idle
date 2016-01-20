@@ -35,7 +35,7 @@ IMAP_USERNAME = "dave@boostpro.com"
 IMAP_PASSWORD = None
 
 # Local mailboxes to scan for new unread messages
-LOCAL_NOTIFY_INCOMING = ['INBOX', 'committee']
+LOCAL_NOTIFY_INCOMING = ['INBOX', 'apple/INBOX']
 
 LOCAL_FTS_MAILBOXES = ['INBOX', 'apple/INBOX', '[Gmail]/All Mail', 'apple/Archive', 'apple/Archive_old']
 
@@ -83,7 +83,7 @@ def log(*args, **kw):
     print >>sys.stderr
     sys.stderr.flush()
 
-def wait_and_check_process(p):
+def wait_and_check_process(p, args):
     """Given a subprocess.Popen object, wait for it to finish and raise
     an exception if it exited with an error
     """
@@ -101,7 +101,7 @@ def osxkeychain(service, account = None, type="internet"):
     acct = account and [ '-a', account ] or []
     args = ['/usr/bin/security', 'find-'+type+'-password', '-gs', service] + acct
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-    wait_and_check_process(p)
+    wait_and_check_process(p, args)
     return p.stderr.readlines()[0].split('"')[1]
 
 def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
@@ -137,7 +137,7 @@ def check_call_with_timeout(timeout, args, *popenargs, **kwargs):
         if t: 
             t.cancel()
 
-    wait_and_check_process(p)
+    wait_and_check_process(p, args)
 
 def message_text(msg):
     """Given an email.message.Message, return its body text, if any, or
@@ -339,9 +339,12 @@ class Synchronizer(Contexts):
                 self.local.update_search_indices(LOCAL_FTS_MAILBOXES)
         except:
             with ScopedLock(self.cv):
-                # This is a hack that lets the process exit when we
-                # are bailing out due to an exception, particularly a
-                # KeyboardInterrupt.
+                # This lets the process exit when we are bailing out
+                # due to an exception, particularly a
+                # KeyboardInterrupt, in imaplib2 < 2.50.
+                #
+                # The maintainer claims it's safe:
+                # http://sourceforge.net/p/imaplib2/mailman/message/34774064/
                 self.remote._end_idle()
             raise
 
