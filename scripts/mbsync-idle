@@ -29,6 +29,7 @@ from threading import *
 #
 MAIL_ICON='http://zachkvet.files.wordpress.com/2011/04/email-icon.png'
 
+# IMAP_USERNAME = "dabrahams@apple.com"
 IMAP_USERNAME = "dave@boostpro.com"
 
 # It will try your OSX keychain if you leave this as None
@@ -300,11 +301,14 @@ class Synchronizer(Contexts):
     def __init__(self):
         self.cv = Condition()
         self.local = ReadOnlyRetryConnection(imaplib2.IMAP4_stream, PREAUTH_TUNNEL)
+        idle_server = 'imap.gmail.com' # 'phonehome.apple.com'
+        idle_keychain_type = 'generic' # 'internet'
+        idle_mailbox = '[Gmail]/All Mail' # 'INBOX'
         self.remote = ReadOnlyRetryConnection(
-                    imaplib2.IMAP4_SSL, "imap.gmail.com",
+                    imaplib2.IMAP4_SSL, idle_server,
                     username=IMAP_USERNAME,
-                    password=IMAP_PASSWORD or osxkeychain('imap.gmail.com', IMAP_USERNAME, type='generic'),
-                    mailbox='[Gmail]/All Mail'
+                    password=IMAP_PASSWORD or osxkeychain(idle_server, IMAP_USERNAME, type=idle_keychain_type),
+                    mailbox=idle_mailbox
                     )
         super(Synchronizer,self).__init__(self.local, self.remote)
         self.idle_thread = Thread(target=self.idle)
