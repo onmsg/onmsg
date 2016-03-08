@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Install onmsg using homebrew
+
+set -o pipefail
+set -e
+
+# Install a local homebrew if not already done
+if ! [ -d ~/brew ] ; then
+    cd ~
+    git clone https://github.com/Homebrew/homebrew ./brew
+fi
+
+BREW="$HOME"/brew/bin/brew
+
+# Get an up-to-date pip
+pip install --user --upgrade pip
+
+
+# Use it to get an up-to-date imaplib2
+cd "$HOME"/brew # it'll go in ~/brew/src
+"$HOME"/Library/Python/2.7/bin/pip install --user -e git+git://git.code.sf.net/p/imaplib2/code#egg=imaplib2
+
+# Install stunnel, so leafnode can access gmane inside Apple's firewall
+${BREW} install stunnel
+
+${BREW} install dovecot --with-clucene --with-stemmer
+${BREW} install leafnode
+${BREW} install isync
+mkdir -p "$HOME"/Library/Data/mbsync
+
+# Get an up-to-date emacs
+${BREW} tap railwaycat/emacsmacport
+${BREW} cask install emacs-mac || ${BREW} upgrade emacs-mac
+
