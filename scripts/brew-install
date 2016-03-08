@@ -3,32 +3,45 @@
 
 set -o pipefail
 set -e
+set -x
 
 # Install a local homebrew if not already done
+HOMEBREW="$HOME"/brew
 if ! [ -d ~/brew ] ; then
     cd ~
-    git clone https://github.com/Homebrew/homebrew ./brew
+    git clone https://github.com/Homebrew/homebrew "$HOMEBREW"
 fi
 
-BREW="$HOME"/brew/bin/brew
+export PATH="$HOMEBREW"/bin:"$PATH"
 
 # Get an up-to-date pip
-pip install --user --upgrade pip
-
+pip install --upgrade --user --install-option="--prefix=" pip
+export PATH="$HOME"/Library/Python/2.7/bin/:"$PATH"
 
 # Use it to get an up-to-date imaplib2
-cd "$HOME"/brew # it'll go in ~/brew/src
-"$HOME"/Library/Python/2.7/bin/pip install --user -e git+git://git.code.sf.net/p/imaplib2/code#egg=imaplib2
+IMAPLIB2_HEAD=a205409a0047732840505e534c07d8d85d2644a1
+CELLAR_PREFIX=$(brew --cellar)/onmsg-imaplib2/git-$IMAPLIB2_HEAD
+if [ -d $(brew --cellar)/onmsg-imaplib2 ] ; then
+    brew rm onmsg-imaplib2
+fi
+BUILD=$(mktemp -d)
+pip install --upgrade \
+    --build="$BUILD" \
+    --install-option="--prefix=$CELLAR_PREFIX" \
+    --install-option="--install-scripts=$CELLAR_PREFIX/share/python" \
+    https://sourceforge.net/code-snapshots/git/i/im/imaplib2/code.git/imaplib2-code-${IMAPLIB2_HEAD}.zip
+brew link onmsg-imaplib2
+rmdir "$BUILD"
 
 # Install stunnel, so leafnode can access gmane inside Apple's firewall
-${BREW} install stunnel
+brew install stunnel
 
-${BREW} install dovecot --with-clucene --with-stemmer
-${BREW} install leafnode
-${BREW} install isync
+brew install dovecot --with-clucene --with-stemmer
+brew install leafnode
+brew install isync
 mkdir -p "$HOME"/Library/Data/mbsync
 
 # Get an up-to-date emacs
-${BREW} tap railwaycat/emacsmacport
-${BREW} cask install emacs-mac || ${BREW} upgrade emacs-mac
+brew tap railwaycat/emacsmacport
+brew cask install emacs-mac || brew upgrade emacs-mac
 
