@@ -14,9 +14,15 @@ fi
 
 export PATH="$HOMEBREW"/bin:"$PATH"
 
-# Get an up-to-date pip
-pip install --upgrade --user --install-option="--prefix=" pip
+export COLUMNS=80 # for pip, which seems to need this.
 export PATH="$HOME"/Library/Python/2.7/bin/:"$PATH"
+
+# Get an up-to-date pip
+if ! [ which pip ] ; then
+    easy_install --user pip
+else
+    pip install --upgrade --user --install-option="--prefix=" pip
+fi
 
 # Use it to get an up-to-date imaplib2
 IMAPLIB2_HEAD=a205409a0047732840505e534c07d8d85d2644a1
@@ -43,5 +49,9 @@ mkdir -p "$HOME"/Library/Data/mbsync
 
 # Get an up-to-date emacs
 brew tap railwaycat/emacsmacport
-brew cask install emacs-mac || brew upgrade emacs-mac
+brew install --with-imagemagick --with-xml2 emacs-mac
+brew upgrade emacs-mac
+brew linkapps
+
+
 
