@@ -3,7 +3,6 @@
 
 set -o pipefail
 set -e
-set -x
 
 # Install a local homebrew if not already done
 HOMEBREW="$HOME"/brew
