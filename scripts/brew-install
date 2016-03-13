@@ -17,7 +17,7 @@ export COLUMNS=80 # for pip, which seems to need this.
 export PATH="$HOME"/Library/Python/2.7/bin/:"$PATH"
 
 # Get an up-to-date pip
-if ! [ which pip ] ; then
+if ! [ "$(which pip)" ] ; then
     easy_install --user pip
 else
     pip install --upgrade --user --install-option="--prefix=" pip
