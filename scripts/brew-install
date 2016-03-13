@@ -46,11 +46,19 @@ brew install leafnode
 brew install isync
 mkdir -p "$HOME"/Library/Data/mbsync
 
+# Create a disk image and mount point for leafnode's news spool.  Last
+# we checked, its ordinary format soaks up way too many actual inodes.
+LEAFNODE_IMAGE="$HOME"/Library/Data/leafnode.sparsebundle
+LEAFNODE_DIR="$HOME"/Library/Data/leafnode
+if ! [ -e "$LEAFNODE_IMAGE" ]; then
+    hdiutil create -size 10g "$LEAFNODE_IMAGE" -fs "JHFS+X" -uid 99 -gid 99
+fi
+hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofsck
+
 # Get an up-to-date emacs
 brew tap railwaycat/emacsmacport
 brew install --with-imagemagick --with-xml2 emacs-mac
 brew upgrade emacs-mac
 brew linkapps
-
 
 

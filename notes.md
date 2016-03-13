@@ -89,5 +89,8 @@ eno:~ dave$ brew install isync
   * [ ] why is scoring not working in apple/INBOX, particularly for
     github commentary?
   * [ ] can I share score files across groups when threads cross INBOX/gmane?
-  * [ ] set up the disk image for leafnode, to conserve inodes
+  * [x] set up the disk image for leafnode, to conserve inodes.
+  
+    The leafnode launchagent can look for a file on the disk image, to
+    know when to KeepAlive.
   
