@@ -14,7 +14,11 @@ fi
 export PATH="$HOMEBREW"/bin:"$PATH"
 
 export COLUMNS=80 # for pip, which seems to need this.
-export PATH="$HOME"/Library/Python/2.7/bin/:"$PATH"
+
+# find the User's python library location
+USER_SITE_PACKAGES="$(easy_install -n --user python | grep install_dir | sed -e 's/install_dir //')"
+USER_PYTHON_EXECUTABLES="$USER_SITE_PACKAGES/../../.."/bin
+export PATH="$USER_PYTHON_EXECUTABLES:$PATH"
 
 # Get an up-to-date pip
 if ! [ "$(which pip)" ] ; then
