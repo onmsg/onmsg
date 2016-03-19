@@ -28,18 +28,19 @@ else
 fi
 
 # Use it to get an up-to-date imaplib2
-IMAPLIB2_HEAD=a205409a0047732840505e534c07d8d85d2644a1
-CELLAR_PREFIX=$(brew --cellar)/onmsg-imaplib2/git-$IMAPLIB2_HEAD
-if [ -d $(brew --cellar)/onmsg-imaplib2 ] ; then
-    brew rm onmsg-imaplib2
+CELLAR_IMAPLIB2="$(brew --cellar)/imaplib2-head"
+CELLAR_IMAPLIB2_PREFIX="$CELLAR_IMAPLIB2/$(date '+%Y%m%d')"
+if [ -d "$CELLAR_IMAPLIB2" ] ; then
+    brew rm imaplib2-head
 fi
 BUILD=$(mktemp -d)
 pip install --upgrade \
+    --user \
+    --src="$CELLAR_IMAPLIB2_PREFIX/src" \
     --build="$BUILD" \
-    --install-option="--prefix=$CELLAR_PREFIX" \
-    --install-option="--install-scripts=$CELLAR_PREFIX/share/python" \
-    https://sourceforge.net/code-snapshots/git/i/im/imaplib2/code.git/imaplib2-code-${IMAPLIB2_HEAD}.zip
-brew link onmsg-imaplib2
+    --install-option="--prefix=$CELLAR_IMAPLIB2_PREFIX" \
+    --editable "git://git.code.sf.net/p/imaplib2/code#egg=imaplib2"
+brew link imaplib2-head
 rmdir "$BUILD"
 
 # Install stunnel, so leafnode can access gmane inside Apple's firewall
