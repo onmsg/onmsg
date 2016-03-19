@@ -63,7 +63,9 @@ hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofs
 # Get an up-to-date emacs
 brew tap railwaycat/emacsmacport
 brew cask install emacs-mac
-brew upgrade emacs-mac
 brew linkapps
 
+# Get syncthing for syncing Gnus files.
+brew cask install syncthing
+brew install syncthing-inotify
 
