@@ -13,6 +13,11 @@ fi
 
 export PATH="$HOMEBREW"/bin:"$PATH"
 
+# Get an up-to-date emacs
+brew tap railwaycat/emacsmacport
+brew cask install emacs-mac
+brew linkapps
+
 export COLUMNS=80 # for pip, which seems to need this.
 
 # find the User's python library location
@@ -59,11 +64,6 @@ if ! [ -e "$LEAFNODE_IMAGE" ]; then
     hdiutil create -size 10g "$LEAFNODE_IMAGE" -fs "JHFS+X" -uid 99 -gid 99
 fi
 hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofsck
-
-# Get an up-to-date emacs
-brew tap railwaycat/emacsmacport
-brew cask install emacs-mac
-brew linkapps
 
 # Get syncthing for syncing Gnus files.
 brew cask install syncthing
