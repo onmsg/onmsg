@@ -21,8 +21,8 @@ brew linkapps
 export COLUMNS=80 # for pip, which seems to need this.
 
 # find the User's python library location
-USER_SITE_PACKAGES="$(easy_install -n --user python | grep install_dir | sed -e 's/install_dir //')"
-USER_PYTHON_EXECUTABLES="$USER_SITE_PACKAGES/../../.."/bin
+USER_SITE_PACKAGES="$(python -c 'import site;print site.USER_SITE')"
+USER_PYTHON_EXECUTABLES="$(python -c 'import site;print site.USER_BASE')"/bin
 export PATH="$USER_PYTHON_EXECUTABLES:$PATH"
 
 # Get an up-to-date pip
