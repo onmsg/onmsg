@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+        <dict>
+                <key>Label</key>                        <string>mac.leafnode</string>
+                <key>WorkingDirectory</key>             <string>/Users/dave/brew/var/spool/news</string>
+                <key>Program</key>                      <string>/Users/dave/brew/sbin/leafnode</string>
+	        <key>UserName</key>                     <string>dave</string>
+                <key>Sockets</key>
+                <dict>
+                        <key>Listeners</key>
+                        <dict>
+                                <key>SockServiceName</key>      <string>9119</string>
+                        </dict>
+                </dict>
+                <key>inetdCompatibility</key>
+                <dict>
+                        <key>Wait</key> <false/>
+                </dict>
+        </dict>
+</plist>
+
+<!-- vim: set nowrap tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab :-->
+<!-- vim: set textwidth=0 filetype=xml foldmethod=marker nospell :-->
