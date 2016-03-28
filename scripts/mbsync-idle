@@ -302,7 +302,7 @@ class Synchronizer(Contexts):
         self.cv = Condition()
         self.local = ReadOnlyRetryConnection(imaplib2.IMAP4_stream, PREAUTH_TUNNEL)
         idle_server = 'imap.gmail.com' # 'phonehome.apple.com'
-        idle_keychain_type = 'generic' # 'internet'
+        idle_keychain_type = 'internet' # 'internet'
         idle_mailbox = '[Gmail]/All Mail' # 'INBOX'
         self.remote = ReadOnlyRetryConnection(
                     imaplib2.IMAP4_SSL, idle_server,
