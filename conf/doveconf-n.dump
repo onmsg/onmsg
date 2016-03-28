@@ -1,0 +1,45 @@
+# 2.2.21 (5345f22): /Users/dave/brew/etc/dovecot/dovecot.conf
+# OS: Darwin 15.4.0 x86_64  hfs
+default_internal_user = dave
+default_login_user = dave
+mail_location = mdbox:/Users/dave/Library/Data/LocalIMAP/mdbox
+mail_plugin_dir = /Users/dave/brew/lib/dovecot
+mail_plugins = fts fts_lucene zlib
+namespace inbox {
+  inbox = yes
+  location =
+  mailbox Drafts {
+    special_use = \Drafts
+  }
+  mailbox Junk {
+    special_use = \Junk
+  }
+  mailbox Sent {
+    special_use = \Sent
+  }
+  mailbox "Sent Messages" {
+    special_use = \Sent
+  }
+  mailbox Trash {
+    special_use = \Trash
+  }
+  prefix =
+  separator = /
+}
+passdb {
+  driver = pam
+}
+plugin {
+  fts = lucene
+  fts_lucene = whitespace_chars="@.()[]{}<>/\\+"
+  zlib_save = gz
+  zlib_save_level = 6
+}
+protocols =
+service anvil {
+  chroot =
+}
+ssl = no
+userdb {
+  driver = passwd
+}

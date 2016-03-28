@@ -40,8 +40,8 @@ LOCAL_NOTIFY_INCOMING = ['INBOX', 'apple/INBOX']
 
 LOCAL_FTS_MAILBOXES = ['INBOX', 'apple/INBOX', '[Gmail]/All Mail', 'apple/Archive', 'apple/Archive_old']
 
-# Dovecot's imap program
-PREAUTH_TUNNEL = '/Users/dave/brew/libexec/dovecot/imap'
+# Dovecot's imap program: $(brew --prefix dovecot)/libexec/dovecot/imap
+PREAUTH_TUNNEL = '/Users/dave/brew/opt/dovecot/libexec/dovecot/imap -c /Users/dave/src/onmsg/conf/doveconf-n.dump'
 
 # How many characters of a message body should we present in notifications
 NOTIFY_MAX_BODY_LENGTH = 100
