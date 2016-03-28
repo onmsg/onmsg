@@ -69,3 +69,7 @@ hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofs
 brew cask install syncthing
 brew install syncthing-inotify
 
+SCRIPT_DIR="$(dirname "$0")"
+ONMSG="$(dirname "$SCRIPT_DIR")"
+
+ln -s "$ONMSG"/Mac/mac.leafnode.plist "$HOME"/Library/LaunchAgents
