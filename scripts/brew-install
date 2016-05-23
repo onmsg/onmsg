@@ -66,8 +66,8 @@ fi
 hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofsck
 
 # Get syncthing for syncing Gnus files.
-brew cask install syncthing
-brew install syncthing-inotify
+# brew cask install syncthing
+# brew install syncthing-inotify
 
 SCRIPT_DIR="$(dirname "$0")"
 ONMSG="$(dirname "$SCRIPT_DIR")"
