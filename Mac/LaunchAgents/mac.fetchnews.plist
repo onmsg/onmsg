@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>mac.fetchnews</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/sh</string>
+		<string>-ec</string>
+		<string>
+# Do nothing if there's no network
+if [ -e /etc/resolv.conf ]; then
+  # and wait for the news spool directory
+  /bin/wait4path /Users/dave/brew/var/spool/news/leafnode
+  # Prevent unmount while we're running
+  cd /Users/dave/brew/var/spool/news/leafnode
+  /Users/dave/brew/sbin/fetchnews
+fi
+                </string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StartInterval</key>
+	<integer>600</integer>
+	<key>ThrottleInterval</key>
+	<integer>60</integer>
+	<key>WatchPaths</key>
+	<array>
+		<string>/etc/resolv.conf</string>
+                <string>/Library/Preferences/SystemConfiguration/NetworkInterfaces.plist</string>
+                <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
+	</array>
+</dict>
+</plist>

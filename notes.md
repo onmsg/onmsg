@@ -93,10 +93,10 @@ eno:~ dave$ brew install isync
   
     The leafnode launchagent can look for a file on the disk image, to
     know when to KeepAlive.
-  * [ ] Create plists:
-    * [ ] fetchnews: while true; do ~/brew/sbin/fetchnews -vvv ; sleep
+  * [x] Create plists:
+    * [x] fetchnews: while true; do ~/brew/sbin/fetchnews -vvv ; sleep
       120 ; done
-    * [ ] mbsync-idle: while true; do ~/src/onmsg/scripts/mbsync-idle
+    * [x] mbsync-idle: while true; do ~/src/onmsg/scripts/mbsync-idle
       ; sleep 10; done
-    * [ ] dovecot: /Users/dave/brew/opt/dovecot/sbin/dovecot -F
+    * [x] dovecot: /Users/dave/brew/opt/dovecot/sbin/dovecot -F
     * [x] stunnel

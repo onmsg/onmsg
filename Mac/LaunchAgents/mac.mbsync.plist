@@ -6,14 +6,14 @@
 	<string>mac.mbsync</string>
 	<key>ProgramArguments</key>
 	<array>
-          <string>/Users/dave/bin/mbsync-idle</string>
-          <!-- <string>--verbose</string> -->
+          <string>/Users/dave/src/onmsg/scripts/mbsync-idle</string>
 	</array>
+
         <key>RunAtLoad</key>
         <true/>
 
 	<key>ThrottleInterval</key>
-	<integer>60</integer>
+	<integer>10</integer>
 
         <key>KeepAlive</key>
         <dict>
@@ -24,9 +24,11 @@
           </dict>
         </dict>
 
-        <!-- <key>StandardOutPath</key> -->
-        <!-- <string>/tmp/mbsync.log</string> -->
-        <!-- <key>StandardErrorPath</key> -->
-        <!-- <string>/tmp/mbsync.log</string> -->
+	<key>WatchPaths</key>
+	<array>
+	  <string>/etc/resolv.conf</string>
+          <string>/Library/Preferences/SystemConfiguration/NetworkInterfaces.plist</string>
+          <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
+	</array>
 </dict>
 </plist>

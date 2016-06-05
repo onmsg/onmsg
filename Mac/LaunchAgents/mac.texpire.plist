@@ -3,30 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>mac.leafnode</string>
+	<string>mac.texpire</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/sh</string>
 		<string>-ec</string>
 		<string>
+# wait for the news spool directory
 /bin/wait4path /Users/dave/brew/var/spool/news/leafnode
 # Prevent unmount while we're running
-cd /Users/dave/brew/var/spool/news/leafnode 
-/Users/dave/brew/sbin/leafnode
+cd /Users/dave/brew/var/spool/news/leafnode
+/Users/dave/brew/sbin/texpire
                 </string>
 	</array>
-	<key>Sockets</key>
-	<dict>
-		<key>Listeners</key>
-		<dict>
-			<key>SockServiceName</key>
-			<string>9119</string>
-		</dict>
-	</dict>
-	<key>inetdCompatibility</key>
-	<dict>
-		<key>Wait</key>
-		<false/>
-	</dict>
+	<key>StartInterval</key>
+	<integer>86400</integer>
+	<key>ThrottleInterval</key>
+	<integer>787</integer>
 </dict>
 </plist>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>mac.news-spool</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>hdiutil</string>
+		<string>attach</string>
+		<string>/Users/dave/Library/Data/leafnode.sparsebundle</string>
+		<string>-mountpoint</string>
+		<string>/Users/dave/brew/var/spool/news/leafnode</string>
+		<string>-nobrowse</string>
+		<string>-noautofsck</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>WorkingDirectory</key>
+	<string>/Users/dave/brew/var/spool/news</string>
+</dict>
+</plist>

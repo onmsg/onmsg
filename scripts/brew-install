@@ -59,17 +59,16 @@ mkdir -p "$HOME"/Library/Data/mbsync
 # Create a disk image and mount point for leafnode's news spool.  Last
 # we checked, its ordinary format soaks up way too many actual inodes.
 LEAFNODE_IMAGE="$HOME"/Library/Data/leafnode.sparsebundle
-LEAFNODE_DIR="$HOME"/Library/Data/leafnode
+LEAFNODE_DIR="$HOMEBREW"/var/spool/news/leafnode
 if ! [ -e "$LEAFNODE_IMAGE" ]; then
     hdiutil create -size 10g "$LEAFNODE_IMAGE" -fs "JHFS+X" -uid 99 -gid 99
 fi
-hdiutil attach "$LEAFNODE_IMAGE" -mountpoint "$LEAFNODE_DIR" -nobrowse -noautofsck
-
-# Get syncthing for syncing Gnus files.
-# brew cask install syncthing
-# brew install syncthing-inotify
 
 SCRIPT_DIR="$(dirname "$0")"
 ONMSG="$(dirname "$SCRIPT_DIR")"
 
-ln -s "$ONMSG"/Mac/mac.leafnode.plist "$HOME"/Library/LaunchAgents
+for service in dovecot fetchnews leafnode mbsync news-spool texpire; do 
+    ln -s "$ONMSG"/Mac/mac."$service".plist "$HOME"/Library/LaunchAgents
+    launchctl load -w "$HOME"/Library/LaunchAgents/mac."$service".plist
+done
+
