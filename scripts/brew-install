@@ -15,7 +15,7 @@ export PATH="$HOMEBREW"/bin:"$PATH"
 
 # Get an up-to-date emacs
 brew tap railwaycat/emacsmacport
-brew cask install emacs-mac
+brew install --HEAD emacs-mac
 brew linkapps
 
 export COLUMNS=80 # for pip, which seems to need this.
