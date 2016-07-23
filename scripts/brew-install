@@ -53,7 +53,6 @@ brew install stunnel
 
 brew install dovecot --with-clucene --with-stemmer
 brew install leafnode
-brew install isync
 mkdir -p "$HOME"/Library/Data/mbsync
 
 # Create a disk image and mount point for leafnode's news spool.  Last
@@ -65,10 +64,13 @@ if ! [ -e "$LEAFNODE_IMAGE" ]; then
 fi
 
 SCRIPT_DIR="$(dirname "$0")"
-ONMSG="$(dirname "$SCRIPT_DIR")"
+cd "$SCRIPT_DIR/.."
+ONMSG="$(pwd)"
+
+ln -sf "$ONMSG"/conf/leafnode.conf "$HOMEBREW"/etc/leafnode/config
 
 for service in dovecot fetchnews leafnode mbsync news-spool texpire; do 
-    ln -s "$ONMSG"/Mac/mac."$service".plist "$HOME"/Library/LaunchAgents
+    ln -sf "$ONMSG"/Mac/LaunchAgents/mac."$service".plist "$HOME"/Library/LaunchAgents
     launchctl load -w "$HOME"/Library/LaunchAgents/mac."$service".plist
 done
 

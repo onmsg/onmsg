@@ -73,6 +73,11 @@ eno:~ dave$ brew install isync
 * the latest imaplib2 from pypi is still really outdated.
 
 * TODO:
+  * [ ] install .mbsyncrc
+  * [ ] set up postfix config: main.cf, smtp_sasl_passwords, sender_dependent_relayhosts
+  * [ ] install .certs
+  * [x] symlink etc/leafnode/config
+  * [ ] figure out how to get passwords from icloud keychain
   * [ ] watch apple with idle as well as gmail
   * [ ] notifications
   * [x] Better insurance about the sender address
