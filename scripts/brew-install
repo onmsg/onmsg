@@ -12,10 +12,12 @@ if ! [ -d ~/brew ] ; then
 fi
 
 export PATH="$HOMEBREW"/bin:"$PATH"
+hash -r
 
 # Get an up-to-date emacs
+brew update
 brew tap railwaycat/emacsmacport
-brew install --HEAD emacs-mac
+brew cask install emacs-mac
 brew linkapps
 
 export COLUMNS=80 # for pip, which seems to need this.
@@ -70,6 +72,7 @@ ONMSG="$(pwd)"
 
 ln -sf "$ONMSG"/conf/leafnode.conf "$HOMEBREW"/etc/leafnode/config
 
+mkdir -p ~/Library/LaunchAgents
 for service in dovecot fetchnews leafnode mbsync news-spool texpire; do 
     ln -sf "$ONMSG"/Mac/LaunchAgents/mac."$service".plist "$HOME"/Library/LaunchAgents
     launchctl load -w "$HOME"/Library/LaunchAgents/mac."$service".plist
