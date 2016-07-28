@@ -71,9 +71,10 @@ cd "$SCRIPT_DIR/.."
 ONMSG="$(pwd)"
 
 ln -sf "$ONMSG"/conf/leafnode.conf "$HOMEBREW"/etc/leafnode/config
+ln -sf "$ONMSG"/conf/stunnel.conf "$HOMEBREW"/etc/stunnel/
 
 mkdir -p ~/Library/LaunchAgents
-for service in dovecot fetchnews leafnode mbsync news-spool texpire; do 
+for service in stunnel dovecot fetchnews leafnode mbsync news-spool texpire; do 
     ln -sf "$ONMSG"/Mac/LaunchAgents/mac."$service".plist "$HOME"/Library/LaunchAgents
     launchctl load -w "$HOME"/Library/LaunchAgents/mac."$service".plist
 done
