@@ -53,6 +53,7 @@ brew install stunnel
 
 brew install dovecot --with-clucene --with-stemmer
 brew install leafnode
+brew install isync
 mkdir -p "$HOME"/Library/Data/mbsync
 
 # Create a disk image and mount point for leafnode's news spool.  Last
