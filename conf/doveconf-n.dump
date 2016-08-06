@@ -32,6 +32,8 @@ passdb {
 plugin {
   fts = lucene
   fts_lucene = whitespace_chars="@.()[]{}<>/\\+"
+  autoindex = yes
+  fts_timeout = 4
   zlib_save = gz
   zlib_save_level = 6
 }
