@@ -13,7 +13,7 @@
         <true/>
 
 	<key>ThrottleInterval</key>
-	<integer>10</integer>
+	<integer>60</integer>
 
         <key>KeepAlive</key>
         <dict>
