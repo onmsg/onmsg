@@ -76,6 +76,7 @@ eno:~ dave$ brew install isync
   * [ ] install .mbsyncrc
   * [ ] set up postfix config: main.cf, smtp_sasl_passwords, sender_dependent_relayhosts
   * [ ] install .certs
+  * [ ] set up gnus-harvest
   * [x] symlink etc/leafnode/config
   * [ ] figure out how to get passwords from icloud keychain
   * [ ] watch apple with idle as well as gmail
