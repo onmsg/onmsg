@@ -70,6 +70,7 @@ SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR/.."
 ONMSG="$(pwd)"
 
+ln -sf "$ONMSG"/conf/doveconf-n.dump "$HOMEBREW"/etc/dovecot/dovecot.conf
 ln -sf "$ONMSG"/conf/leafnode.conf "$HOMEBREW"/etc/leafnode/config
 ln -sf "$ONMSG"/conf/stunnel.conf "$HOMEBREW"/etc/stunnel/
 
