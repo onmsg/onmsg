@@ -80,7 +80,7 @@ eno:~ dave$ brew install isync
   * [x] symlink etc/leafnode/config
   * [ ] figure out how to get passwords from icloud keychain
   * [ ] watch apple with idle as well as gmail
-  * [ ] notifications
+  * [ ] notifications (https://github.com/jwiegley/alert - there's a package)
   * [x] Better insurance about the sender address
   * [ ] Smart word wrapping for articles that contain code.  See
     `gnus-article-foldable-buffer' and
