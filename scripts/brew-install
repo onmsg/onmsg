@@ -38,7 +38,7 @@ fi
 CELLAR_IMAPLIB2="$(brew --cellar)/imaplib2-head"
 CELLAR_IMAPLIB2_PREFIX="$CELLAR_IMAPLIB2/$(date '+%Y%m%d')"
 if [ -d "$CELLAR_IMAPLIB2" ] ; then
-    brew rm imaplib2-head
+    brew rm imaplib2-head || true
 fi
 BUILD=$(mktemp -d)
 pip install --upgrade \
@@ -66,9 +66,7 @@ if ! [ -e "$LEAFNODE_IMAGE" ]; then
     hdiutil create -size 10g "$LEAFNODE_IMAGE" -fs "JHFS+X" -uid 99 -gid 99
 fi
 
-SCRIPT_DIR="$(dirname "$0")"
-cd "$SCRIPT_DIR/.."
-ONMSG="$(pwd)"
+ONMSG=$(cd $(dirname "$0"); cd .. ; pwd)
 
 ln -sf "$ONMSG"/conf/doveconf-n.dump "$HOMEBREW"/etc/dovecot/dovecot.conf
 ln -sf "$ONMSG"/conf/leafnode.conf "$HOMEBREW"/etc/leafnode/config
