@@ -22,7 +22,7 @@ configurations.  They'll be especially useful if you're a Gnus user.
 
 ## Installation on MacOS
 
-1. Install HomeBrew
+1. Install [HomeBrew](https://brew.sh)
 2. Review the [brew-install script](https://github.com/onmsg/onmsg/blob/master/scripts/brew-install) and make sure it isn't doing anything specific to my setup that you want to change.  The script contains several constants at the beginning that you may want to tweak, and one (my GMail username) that you'll *definitely* want to tweak.
 3. Run the [brew-install script](https://github.com/onmsg/onmsg/blob/master/scripts/brew-install) from the root of this repository: `scripts/brew-install`
 
